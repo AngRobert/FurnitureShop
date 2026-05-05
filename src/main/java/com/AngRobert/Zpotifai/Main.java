@@ -1,4 +1,4 @@
-package com.AngRobert.ShopApplication;
+package com.AngRobert.Zpotifai;
 
 public class Main {
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package com.AngRobert.ShopApplication.util;
+package com.AngRobert.Zpotifai.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

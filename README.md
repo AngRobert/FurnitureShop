@@ -1,16 +1,17 @@
-# FurnitureShop
+# Zpotifai Streaming Service
 This is my project for the Advanced Object-Oriented Programming course.
 
 Features:
 
-- Show all furniture categories and types.
-- Show details of a specific item (by searching or indexing through inventory).
-- Add a new item to the inventory
-- Edit details of an already existing item.
-- Create a new category of items.
-- Delete a category of items and all items of that category.
-- Delete an item from inventory.
-- Stage a purchase order from the shop.
-- List all orders from the last 'x' days.
-- Mark an item (or a number of items) as unsellable (e.g. for display in the shop).
-- Show audit logs
+1. Search for an artist, album or track name
+2. List details of an artist, album or track
+3. Add a new artist to database
+4. Add a new album to an artist's catalogue
+5. Add a new single
+6. Add a new song to an album
+7. List artists by tag
+8. Add a new tag to an artist 
+9. Delete a tag from an artist
+10. Delete a song (single or album track)
+11. Delete an artist and all their songs from the database
+12. Delete an album and all its songs from the database
