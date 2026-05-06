@@ -33,3 +33,7 @@ replay_pid*
 #Build
 target/
 dependency-reduced-pom.xml
+
+# DrawIO
+*.bkp
+*.dtmp

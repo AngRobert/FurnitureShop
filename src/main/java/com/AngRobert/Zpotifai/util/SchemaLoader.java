@@ -6,9 +6,7 @@ import java.sql.Connection;
 public class SchemaLoader {
     public static void run() {
         try {
-            InputStream is = SchemaLoader.class
-                    .getClassLoader()
-                    .getResourceAsStream("schema.sql");
+            InputStream is = SchemaLoader.class.getClassLoader().getResourceAsStream("schema.sql");
             if (is == null) {
                 System.out.println("schema.sql not found");
                 return;
