@@ -23,7 +23,13 @@ public class DBConnection {
     public static Connection get() { return conn; }
 
     public static void close() {
-        try { if (conn != null) conn.close(); }
-        catch (SQLException e) { e.getMessage(); }
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+        catch (SQLException e) {
+            e.getMessage();
+        }
     }
 }

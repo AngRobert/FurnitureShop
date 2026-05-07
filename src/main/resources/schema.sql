@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS PODCASTS (
     podcast_id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description VARCHAR(500) NOT NULL,
+    release_date DATE NOT NULL DEFAULT CURRENT_DATE,
     length INT NOT NULL CHECK (length > 0),
     streams INT NOT NULL DEFAULT 0 CHECK (streams >= 0)
 );

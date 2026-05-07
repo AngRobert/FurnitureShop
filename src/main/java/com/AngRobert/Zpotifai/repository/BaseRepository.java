@@ -1,5 +1,6 @@
 package com.AngRobert.Zpotifai.repository;
 
+import com.AngRobert.Zpotifai.model.Searchable;
 import com.AngRobert.Zpotifai.util.DBConnection;
 
 import java.sql.PreparedStatement;
@@ -24,6 +25,22 @@ public abstract class BaseRepository<T> {
             System.out.println("Error: " + e.getMessage());
         }
         return null;
+    }
+
+    public List<T> searchByColumnName(String columnName, String value) {
+        String sql = "SELECT * FROM " + getTableName() + " WHERE " + columnName + " LIKE ?";
+        List<T> rez = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setString(1, "%" + value + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                rez.add(mapRow(rs));
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return rez;
     }
 
     public List<T> findAll() {
