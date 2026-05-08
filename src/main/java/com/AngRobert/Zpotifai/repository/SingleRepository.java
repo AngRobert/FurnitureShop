@@ -6,7 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class SingleRepository extends BaseRepository<Single> implements SearchableRepository<Single> {
+public class SingleRepository extends BaseRepository<Single> implements SearchableRepository<Single>{
+
+    @Override
+    public int add(List<String> columns, List<Object> values) {
+        return addWithChild("SINGLES", List.of(), columns, values);
+    }
+
     @Override
     protected Single mapRow(ResultSet rs) throws SQLException {
         Single s = new Single();
@@ -21,6 +27,11 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
     @Override
     protected String getTableName() {
         return "SINGLES JOIN SONGS ON SINGLES.song_id = SONGS.song_id";
+    }
+
+    @Override
+    protected String getBaseTableName() {
+        return "SONGS";
     }
 
     @Override

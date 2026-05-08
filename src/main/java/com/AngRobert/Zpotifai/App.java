@@ -1,18 +1,19 @@
 package com.AngRobert.Zpotifai;
 
 import com.AngRobert.Zpotifai.controller.MenuController;
-import com.AngRobert.Zpotifai.model.Album;
-import com.AngRobert.Zpotifai.model.Podcast;
 import com.AngRobert.Zpotifai.repository.*;
+import com.AngRobert.Zpotifai.service.DatabaseService;
 import com.AngRobert.Zpotifai.service.SearchService;
 import com.AngRobert.Zpotifai.util.DBConnection;
 import com.AngRobert.Zpotifai.util.SchemaLoader;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class App {
 
     private final List<SearchableRepository<?>> repos;
+    private final DatabaseService databaseService;
 
     public App() {
         var albumRepo = new AlbumRepository();
@@ -21,9 +22,13 @@ public class App {
         var hostRepo = new HostRepository();
         var podcastRepo = new PodcastRepository();
         var singleRepo = new SingleRepository();
+        var tagRepo = new TagRepository();
 
         this.repos = List.of(albumRepo, albumTrackRepo, artistRepo, hostRepo,
                 podcastRepo, singleRepo);
+
+        this.databaseService = new DatabaseService(albumRepo, albumTrackRepo, artistRepo, hostRepo,
+                podcastRepo, singleRepo, tagRepo);
     }
 
     public void run() {
@@ -31,8 +36,9 @@ public class App {
         SchemaLoader.run();
 
         SearchService searchService = new SearchService(this.repos);
+        Scanner scanner = new Scanner(System.in);
 
-        new MenuController(searchService).start();
+        new MenuController(searchService, this.databaseService, scanner).start();
 
         DBConnection.close();
     }

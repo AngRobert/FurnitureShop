@@ -7,6 +7,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class HostRepository extends BaseRepository<Host> implements SearchableRepository<Host>{
+
+    @Override
+    public int add(List<String> columns, List<Object> values) {
+        return addWithChild("HOSTS", List.of("recommended_podcast"), columns, values);
+    }
+
     @Override
     protected Host mapRow(ResultSet rs) throws SQLException {
         Host h = new Host();
@@ -20,6 +26,11 @@ public class HostRepository extends BaseRepository<Host> implements SearchableRe
     @Override
     protected String getTableName() {
         return "HOSTS JOIN CREATORS ON HOSTS.creator_id = CREATORS.creator_id";
+    }
+
+    @Override
+    protected String getBaseTableName() {
+        return "CREATORS";
     }
 
     @Override

@@ -14,17 +14,17 @@ public class SearchService {
 
     // takes the list of repos that appear in the search and calls searchByName for each of them
     public void handleSearch(String name) {
-        System.out.println("sunt in handleSearch\n");
         for (SearchableRepository<?> repo : this.searchableRepositories) {
             List<?> results = repo.searchByName(name);
             if (!results.isEmpty()) {
-                System.out.println(repo.getCategoryName() + ":\n");
+                System.out.println(repo.getCategoryName() + ":");
                 for (int i = 0; i < results.size(); i ++) {
                     var item = (Searchable) results.get(i);
-                    System.out.printf("\t%d: %s%n", i, item.getName());
+                    System.out.printf("\t%d: %s", i + 1, item.getName());
                 }
+                System.out.println("\n");
             }
-            System.out.println("\n");
+
         }
     }
 }

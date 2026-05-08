@@ -9,6 +9,11 @@ import java.util.List;
 public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements SearchableRepository<AlbumTrack>
 {
     @Override
+    public int add(List<String> columns, List<Object> values) {
+        return addWithChild("ALBUM_TRACKS", List.of("track_number", "album_id"), columns, values);
+    }
+
+    @Override
     protected AlbumTrack mapRow(ResultSet rs) throws SQLException {
         AlbumTrack a = new AlbumTrack();
         a.setSong_id(rs.getInt("song_id"));
@@ -23,6 +28,11 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
     @Override
     protected String getTableName() {
         return "ALBUM_TRACKS JOIN SONGS ON ALBUM_TRACKS.song_id = SONGS.song_id";
+    }
+
+    @Override
+    protected String getBaseTableName() {
+        return "SONGS";
     }
 
     @Override
