@@ -14,8 +14,8 @@ public class ArtistRepository extends BaseRepository<Artist> implements Searchab
     }
 
     @Override
-    public void update(int id, List<String> columns, List<Object> values) {
-        updateWithChild("ARTISTS", List.of("recommended_song"), id, columns, values);
+    public int update(int id, List<String> columns, List<Object> values) {
+        return updateWithChild("ARTISTS", List.of("recommended_song"), id, columns, values);
     }
 
     @Override

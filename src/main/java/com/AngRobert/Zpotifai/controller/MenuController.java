@@ -88,7 +88,7 @@ public class MenuController {
                     handleAddAction(entityType);
                     break;
                 case 2:
-                    System.out.println("Update logic coming soon...");
+                    handleUpdateAction(entityType);
                     break;
                 case 3:
                     System.out.println("Delete logic coming soon...");
@@ -96,6 +96,154 @@ public class MenuController {
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input! Please enter a number from those that appear on screen.");
+        }
+    }
+
+    private void handleUpdateAction(String entityType) {
+        try {
+            int result = -1;
+            switch (entityType) {
+                case "Creator":
+                    System.out.println("1. Artist\n2. Host");
+                    int type = Integer.parseInt(scanner.nextLine());
+                    if (type == 1) {
+                        System.out.println("Artist name: ");
+                        String name = scanner.nextLine();
+                        if (!databaseService.findArtist(name)) {
+                            System.out.println("Error: Artist '" + name + "' not found!");
+                            return;
+                        }
+
+                        System.out.println("New artist name: ");
+                        String newName = scanner.nextLine();
+                        System.out.println("New artist description: ");
+                        String newDescription = scanner.nextLine();
+                        System.out.println("New recommended song: ");
+                        String newRecommendedSong = scanner.nextLine();
+                        result = databaseService.updateArtist(name, newName, newDescription, newRecommendedSong);
+                    } else {
+                        System.out.println("Host name: ");
+                        String name = scanner.nextLine();
+                        if (!databaseService.findHost(name)) {
+                            System.out.println("Error: Host '" + name + "' not found!");
+                            return;
+                        }
+
+                        System.out.println("New host name: ");
+                        String newName = scanner.nextLine();
+                        System.out.println("New host description: ");
+                        String newDescription = scanner.nextLine();
+                        System.out.println("New recommended podcast: ");
+                        String newRecommendedPodcast = scanner.nextLine();
+                        result = databaseService.updateHost(name, newName, newDescription, newRecommendedPodcast);
+                    }
+                    break;
+
+                case "Podcast":
+                    System.out.print("Podcast Name: ");
+                    String pName = scanner.nextLine();
+                    if (!databaseService.findPodcast(pName)) {
+                        System.out.println("Error: Podcast '" + pName + "' not found!");
+                        return;
+                    }
+
+                    System.out.print("New Podcast Name: ");
+                    String newPName = scanner.nextLine();
+                    System.out.print("New Podcast Description: ");
+                    String newPDesc = scanner.nextLine();
+                    System.out.print("New Podcast Length: ");
+                    int newPLen = Integer.parseInt(scanner.nextLine());
+                    result = databaseService.updatePodcast(pName, newPName, newPDesc, newPLen);
+                    break;
+
+                case "Album":
+                    System.out.print("Artist Name: ");
+                    String albumArtist = scanner.nextLine();
+                    if (!databaseService.findArtist(albumArtist)) {
+                        System.out.println("Error: Artist '" + albumArtist + "' not found!");
+                        return;
+                    }
+
+                    System.out.print("Album Name: ");
+                    String aName = scanner.nextLine();
+                    if (!databaseService.findAlbum(aName, albumArtist)) {
+                        System.out.println("Error: Album '" + aName + "' not found for artist '" + albumArtist + "'!");
+                        return;
+                    }
+
+                    System.out.print("New Album Name: ");
+                    String newAName = scanner.nextLine();
+                    result = databaseService.updateAlbum(aName, albumArtist, newAName);
+                    break;
+
+                case "Song":
+                    System.out.println("1. Single\n2. Album Track");
+                    int sType = Integer.parseInt(scanner.nextLine());
+                    
+                    System.out.print("Artist Name: ");
+                    String songArtist = scanner.nextLine();
+                    if (!databaseService.findArtist(songArtist)) {
+                        System.out.println("Error: Artist '" + songArtist + "' not found!");
+                        return;
+                    }
+
+                    if (sType == 1) {
+                        System.out.print("Single Name: ");
+                        String sName = scanner.nextLine();
+                        if (!databaseService.findSingle(sName, songArtist)) {
+                            System.out.println("Error: Single '" + sName + "' not found for artist '" + songArtist + "'!");
+                            return;
+                        }
+                        System.out.print("New Song Name: ");
+                        String newSName = scanner.nextLine();
+                        System.out.print("New Song Length: ");
+                        int newSLen = Integer.parseInt(scanner.nextLine());
+                        result = databaseService.updateSingle(sName, songArtist, newSName, newSLen);
+                    } else {
+                        System.out.print("Album Name: ");
+                        String albumName = scanner.nextLine();
+                        if (!databaseService.findAlbum(albumName, songArtist)) {
+                            System.out.println("Error: Album '" + albumName + "' not found for artist '" + songArtist + "'!");
+                            return;
+                        }
+
+                        System.out.print("Song Name: ");
+                        String sName = scanner.nextLine();
+                        if (!databaseService.findAlbumTrack(sName, albumName, songArtist)) {
+                            System.out.println("Error: Song '" + sName + "' not found on album '" + albumName + "'!");
+                            return;
+                        }
+
+                        System.out.print("New Song Name: ");
+                        String newSName = scanner.nextLine();
+                        System.out.print("New Song Length: ");
+                        int newSLen = Integer.parseInt(scanner.nextLine());
+                        System.out.print("New Track Number: ");
+                        int newTrackNum = Integer.parseInt(scanner.nextLine());
+                        result = databaseService.updateAlbumTrack(sName, albumName, songArtist, newSName, newSLen, newTrackNum);
+                    }
+                    break;
+
+                case "Tag":
+                    System.out.print("Tag Description: ");
+                    String tDesc = scanner.nextLine();
+                    if (!databaseService.findTag(tDesc)) {
+                        System.out.println("Error: Tag '" + tDesc + "' not found!");
+                        return;
+                    }
+
+                    System.out.print("New Tag Description: ");
+                    String newTDesc = scanner.nextLine();
+                    result = databaseService.updateTag(tDesc, newTDesc);
+                    break;
+            }
+
+            if (result != -1) {
+                System.out.println(entityType + " updated successfully!");
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input! Please enter numbers where requested.");
         }
     }
 

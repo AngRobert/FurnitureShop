@@ -16,8 +16,8 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
     }
 
     @Override
-    public void update(int id, List<String> columns, List<Object> values) {
-        updateWithChild("ALBUM_TRACKS", List.of("track_number", "album_id"), id, columns, values);
+    public int update(int id, List<String> columns, List<Object> values) {
+        return updateWithChild("ALBUM_TRACKS", List.of("track_number", "album_id"), id, columns, values);
     }
 
     @Override

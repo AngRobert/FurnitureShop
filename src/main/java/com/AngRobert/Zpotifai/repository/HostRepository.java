@@ -14,8 +14,8 @@ public class HostRepository extends BaseRepository<Host> implements SearchableRe
     }
 
     @Override
-    public void update(int id, List<String> columns, List<Object> values) {
-        updateWithChild("HOSTS", List.of("recommended_podcast"), id, columns, values);
+    public int update(int id, List<String> columns, List<Object> values) {
+        return updateWithChild("HOSTS", List.of("recommended_podcast"), id, columns, values);
     }
 
     @Override

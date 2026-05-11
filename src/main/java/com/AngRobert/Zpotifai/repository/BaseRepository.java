@@ -65,7 +65,7 @@ public abstract class BaseRepository<T> {
         String sql = "SELECT * FROM " + getTableName() + " WHERE LOWER(" + columnName + ") LIKE LOWER(?)";
         List<T> rez = new ArrayList<>();
         try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
-            stmt.setString(1, "%" + value + "%");
+            stmt.setString(1, value + "%");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 rez.add(mapRow(rs));
@@ -107,7 +107,7 @@ public abstract class BaseRepository<T> {
             }
         }
         sql.append(")");
-
+        // RETURN_GENERATED_KEYS ne spune ca id-ul generat random poate fi "retrieved"
         try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < values.size(); i++) {
                 stmt.setObject(i + 1, values.get(i));
@@ -173,8 +173,8 @@ public abstract class BaseRepository<T> {
         return id;
     }
 
-    public void update(String tableName, int id, List<String> columns, List<Object> values) {
-        if (columns.isEmpty()) return;
+    public int update(String tableName, int id, List<String> columns, List<Object> values) {
+        if (columns.isEmpty()) return -1;
         if (columns.size() != values.size()) {
             throw new IllegalArgumentException("The number of values inputted must match the number of columns!");
         }
@@ -197,19 +197,22 @@ public abstract class BaseRepository<T> {
             }
             stmt.setInt(values.size() + 1, id);
             stmt.executeUpdate();
+            return id;
         } catch (SQLException e) {
             System.out.println("Error updating " + tableName + ": " + e.getMessage());
         }
+        return -1;
     }
 
-    public void update(int id, List<String> columns, List<Object> values) {
-        update(getBaseTableName(), id, columns, values);
+    public int update(int id, List<String> columns, List<Object> values) {
+        return update(getBaseTableName(), id, columns, values);
     }
 
-    protected void updateWithChild(String childTableName, List<String> childColumns, int id, List<String> columns, List<Object> values) {
+    protected int updateWithChild(String childTableName, List<String> childColumns, int id, List<String> columns, List<Object> values) {
         ColumnSplit split = splitColumns(childColumns, columns, values);
         update(getBaseTableName(), id, split.parentCols(), split.parentVals());
         update(childTableName, id, split.childCols(), split.childVals());
+        return id;
     }
 
     public void deleteById(int id) {

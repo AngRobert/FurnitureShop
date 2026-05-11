@@ -16,8 +16,8 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
     }
 
     @Override
-    public void update(int id, List<String> columns, List<Object> values) {
-        updateWithChild("SINGLES", List.of(), id, columns, values);
+    public int update(int id, List<String> columns, List<Object> values) {
+        return updateWithChild("SINGLES", List.of(), id, columns, values);
     }
 
     @Override
