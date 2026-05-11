@@ -47,6 +47,20 @@ public abstract class BaseRepository<T> {
         return null;
     }
 
+    public Boolean checkDuplicates(String name) {
+        String sql = "SELECT 1 FROM " + getBaseTableName() + " WHERE LOWER(" + getNameColumnName() + ") = LOWER(?)";
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        }
+        catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return false;
+    }
+
     public List<T> searchByColumnName(String columnName, String value) {
         String sql = "SELECT * FROM " + getTableName() + " WHERE LOWER(" + columnName + ") LIKE LOWER(?)";
         List<T> rez = new ArrayList<>();
@@ -114,7 +128,11 @@ public abstract class BaseRepository<T> {
         return add(getBaseTableName(), columns, values);
     }
 
-    protected int addWithChild(String childTableName, List<String> childOnlyColumns, List<String> columns, List<Object> values) {
+    private record ColumnSplit(List<String> parentCols, List<Object> parentVals,
+
+                               List<String> childCols, List<Object> childVals) {}
+
+    private ColumnSplit splitColumns(List<String> childOnlyColumns, List<String> columns, List<Object> values) {
         List<String> parentCols = new ArrayList<>();
         List<Object> parentVals = new ArrayList<>();
         List<String> childCols = new ArrayList<>();
@@ -138,23 +156,31 @@ public abstract class BaseRepository<T> {
                 parentVals.add(values.get(i));
             }
         }
+        return new ColumnSplit(parentCols, parentVals, childCols, childVals);
+    }
 
-        int id = add(getBaseTableName(), parentCols, parentVals);
+    protected int addWithChild(String childTableName, List<String> childOnlyColumns, List<String> columns, List<Object> values) {
+        ColumnSplit split = splitColumns(childOnlyColumns, columns, values);
+
+        int id = add(getBaseTableName(), split.parentCols(), split.parentVals());
         if (id != -1) {
-            childCols.add(getIdColumnName());
-            childVals.add(id);
-            add(childTableName, childCols, childVals);
+            List<String> cCols = new ArrayList<>(split.childCols());
+            List<Object> cVals = new ArrayList<>(split.childVals());
+            cCols.add(getIdColumnName());
+            cVals.add(id);
+            add(childTableName, cCols, cVals);
         }
         return id;
     }
 
-    public void update(int id, List<String> columns, List<Object> values) {
+    public void update(String tableName, int id, List<String> columns, List<Object> values) {
+        if (columns.isEmpty()) return;
         if (columns.size() != values.size()) {
             throw new IllegalArgumentException("The number of values inputted must match the number of columns!");
         }
 
         StringBuilder sql = new StringBuilder("UPDATE ")
-                .append(getBaseTableName())
+                .append(tableName)
                 .append(" SET ");
 
         for (int i = 0; i < columns.size(); i++) {
@@ -172,8 +198,18 @@ public abstract class BaseRepository<T> {
             stmt.setInt(values.size() + 1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Error updating: " + e.getMessage());
+            System.out.println("Error updating " + tableName + ": " + e.getMessage());
         }
+    }
+
+    public void update(int id, List<String> columns, List<Object> values) {
+        update(getBaseTableName(), id, columns, values);
+    }
+
+    protected void updateWithChild(String childTableName, List<String> childColumns, int id, List<String> columns, List<Object> values) {
+        ColumnSplit split = splitColumns(childColumns, columns, values);
+        update(getBaseTableName(), id, split.parentCols(), split.parentVals());
+        update(childTableName, id, split.childCols(), split.childVals());
     }
 
     public void deleteById(int id) {

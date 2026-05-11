@@ -14,6 +14,11 @@ public class ArtistRepository extends BaseRepository<Artist> implements Searchab
     }
 
     @Override
+    public void update(int id, List<String> columns, List<Object> values) {
+        updateWithChild("ARTISTS", List.of("recommended_song"), id, columns, values);
+    }
+
+    @Override
     protected Artist mapRow(ResultSet rs) throws SQLException {
         Artist a = new Artist();
         a.setCreator_id(rs.getInt("creator_id"));

@@ -29,7 +29,13 @@ public class DatabaseService {
         this.tagRepository = tagRepository;
     }
 
+    // metodele sunt cu int, ca sa se poata lua rezultatul si sa se afiseze mesaj de succes in terminal
+
     public int addArtist(String name, String description, String recommendedSong) {
+        if (artistRepository.checkDuplicates(name)) {
+            System.out.println("Artist with this name already exists!");
+            return -1;
+        }
         return artistRepository.add(
                 List.of("name", "description", "recommended_song"),
                 List.of(name, description, recommendedSong)
@@ -37,6 +43,10 @@ public class DatabaseService {
     }
 
     public int addHost(String name, String description, String recommendedPodcast) {
+        if (hostRepository.checkDuplicates(name)) {
+            System.out.println("Host with this name already exists!");
+            return -1;
+        }
         return hostRepository.add(
                 List.of("name", "description", "recommended_podcast"),
                 List.of(name, description, recommendedPodcast)
@@ -44,6 +54,10 @@ public class DatabaseService {
     }
 
     public int addPodcast(String name, String description, int length, String hostName) {
+        if (podcastRepository.checkDuplicates(name)) {
+            System.out.println("Podcast with this name already exists!");
+            return -1;
+        }
         int hostId = hostRepository.getIdByName(hostName);
         if (hostId == -1) {
             System.out.println("Host not found!");
@@ -70,6 +84,11 @@ public class DatabaseService {
             return -1;
         }
 
+        if (albumRepository.getIdByNameAndArtist(name, artistId) != -1) {
+            System.out.println("Album with this name already exists for this artist!");
+            return -1;
+        }
+
         int albumId = albumRepository.add(
                 List.of("name"),
                 List.of(name)
@@ -87,6 +106,11 @@ public class DatabaseService {
         int artistId = artistRepository.getIdByName(artistName);
         if (artistId == -1) {
             System.out.println("Artist not found!");
+            return -1;
+        }
+
+        if (singleRepository.getIdByNameAndArtist(name, artistId) != -1) {
+            System.out.println("Single with this name already exists for this artist!");
             return -1;
         }
 
@@ -116,6 +140,11 @@ public class DatabaseService {
             return -1;
         }
 
+        if (albumTrackRepository.getIdByNameAndAlbum(name, albumId) != -1) {
+            System.out.println("Song with this name already exists on this album!");
+            return -1;
+        }
+
         int songId = albumTrackRepository.add(
                 List.of("name", "length", "album_id", "track_number"),
                 List.of(name, length, albumId, trackNumber)
@@ -130,6 +159,10 @@ public class DatabaseService {
     }
 
     public int addTag(String description) {
+        if (tagRepository.checkDuplicates(description)) {
+            System.out.println("Tag already exists!");
+            return -1;
+        }
         return tagRepository.add(
                 List.of("description"),
                 List.of(description)
