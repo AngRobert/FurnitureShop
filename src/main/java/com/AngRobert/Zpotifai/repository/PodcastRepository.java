@@ -36,6 +36,20 @@ public class PodcastRepository extends BaseRepository<Podcast> implements Search
     }
 
     @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "description", "release_date", "length", "streams"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> hosts = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN PODCAST_HOSTS PH ON C.creator_id = PH.creator_id WHERE PH.podcast_id = ?",
+                id
+        );
+        details.append("Hosts: ").append(hosts.isEmpty() ? "None" : String.join(", ", hosts)).append("\n");
+
+        return details.toString();
+    }
+
+    @Override
     public String getCategoryName() {
         return "Podcasts";
     }

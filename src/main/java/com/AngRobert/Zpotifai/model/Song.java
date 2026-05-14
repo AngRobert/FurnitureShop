@@ -9,7 +9,7 @@ public abstract class Song extends Streamable {
 
     public Song() {}
 
-    public int getSong_id() {
+    public int getId() {
         return song_id;
     }
 

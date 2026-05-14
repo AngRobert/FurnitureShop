@@ -49,6 +49,20 @@ public class HostRepository extends BaseRepository<Host> implements SearchableRe
     }
 
     @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "description", "recommended_podcast"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> podcasts = getRelatedNames(
+                "SELECT P.name FROM PODCASTS P JOIN PODCAST_HOSTS PH ON P.podcast_id = PH.podcast_id WHERE PH.creator_id = ?",
+                id
+        );
+        details.append("Podcasts: ").append(podcasts.isEmpty() ? "None" : String.join(", ", podcasts)).append("\n");
+
+        return details.toString();
+    }
+
+    @Override
     public String getCategoryName() {
         return "Hosts";
     }

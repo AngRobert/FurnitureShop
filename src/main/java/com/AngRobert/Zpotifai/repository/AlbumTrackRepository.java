@@ -53,6 +53,20 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
     }
 
     @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "length", "streams", "release_date", "track_number"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> album = getRelatedNames(
+                "SELECT A.name FROM ALBUMS A JOIN ALBUM_TRACKS AT ON A.album_id = AT.album_id WHERE AT.song_id = ?",
+                id
+        );
+        details.append("Album: ").append(album.isEmpty() ? "None" : album.get(0)).append("\n");
+
+        return details.toString();
+    }
+
+    @Override
     public String getCategoryName() {
         return "Album Tracks";
     }

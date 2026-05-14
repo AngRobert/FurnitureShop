@@ -21,7 +21,7 @@ public class Album implements Searchable {
         this.name = name;
     }
 
-    public int getAlbum_id() {
+    public int getId() {
         return album_id;
     }
 

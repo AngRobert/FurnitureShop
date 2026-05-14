@@ -46,6 +46,21 @@ public class MenuController {
                     System.out.print("Search: ");
                     String input = scanner.nextLine();
                     searchService.handleSearch(input);
+                    System.out.println("To see more details about an entry, enter the category number followed by the entry number (e.g., '1 1').");
+                    System.out.println("Otherwise, press Enter to return to the main menu.");
+                    String detailInput = scanner.nextLine();
+                    if (!detailInput.trim().isEmpty()) {
+                        String[] parts = detailInput.split("\\s+");
+                        if (parts.length == 2) {
+                            try {
+                                int category = Integer.parseInt(parts[0]);
+                                int entry = Integer.parseInt(parts[1]);
+                                searchService.handleSearch(input, category, entry);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid format. Please enter two numbers.");
+                            }
+                        }
+                    }
                     break;
                 case 3:
                     handleDbOperation("Creator");

@@ -224,4 +224,54 @@ public abstract class BaseRepository<T> {
             System.out.println("Error: " + e.getMessage());
         }
     }
+
+    public String getSearchDetails(int id, List<String> columnNames) {
+        String columns = String.join(", ", columnNames);
+        String sql = "SELECT " + columns + " FROM " + getTableName() + " WHERE " + getBaseTableName() + "." + getIdColumnName() + " = ?";
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                StringBuilder details = new StringBuilder("\nDetails:\n");
+                for (String col : columnNames) {
+                    // Prettify column names: replace _ with space and capitalize
+                    String displayName = col.substring(0, 1).toUpperCase() + col.substring(1).replace("_", " ");
+                    Object value = rs.getObject(col);
+
+                    // Special formatting for length (seconds to MM:SS)
+                    if (col.equalsIgnoreCase("length") && value instanceof Number) {
+                        int totalSeconds = ((Number) value).intValue();
+                        int mins = totalSeconds / 60;
+                        int secs = totalSeconds % 60;
+                        value = String.format("%d:%02d", mins, secs);
+                    }
+
+                    details.append(displayName).append(": ").append(value).append("\n");
+                }
+                return details.toString();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching details: " + e.getMessage());
+        }
+        return "Item not found.";
+    }
+
+    // Keep the generic one as a fallback or remove it if we want strictness
+    public String getSearchDetails(int id) {
+        return "No details implemented for this category.";
+    }
+
+    protected List<String> getRelatedNames(String sql, int id) {
+        List<String> names = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                names.add(rs.getString(1));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching related names: " + e.getMessage());
+        }
+        return names;
+    }
 }

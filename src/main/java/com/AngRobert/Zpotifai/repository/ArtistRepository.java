@@ -49,6 +49,27 @@ public class ArtistRepository extends BaseRepository<Artist> implements Searchab
     }
 
     @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "description", "recommended_song"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> albums = getRelatedNames(
+                "SELECT A.name FROM ALBUMS A JOIN ALBUM_ARTISTS AA ON A.album_id = AA.album_id WHERE AA.creator_id = ?",
+                id
+        );
+        details.append("Albums: ").append(albums.isEmpty() ? "None" : String.join(", ", albums)).append("\n");
+
+        List<String> singles = getRelatedNames(
+                "SELECT S.name FROM SONGS S JOIN SONG_ARTISTS SA ON S.song_id = SA.song_id " +
+                        "JOIN SINGLES SI ON S.song_id = SI.song_id WHERE SA.creator_id = ?",
+                id
+        );
+        details.append("Singles: ").append(singles.isEmpty() ? "None" : String.join(", ", singles)).append("\n");
+
+        return details.toString();
+    }
+
+    @Override
     public String getCategoryName() {
         return "Artists";
     }

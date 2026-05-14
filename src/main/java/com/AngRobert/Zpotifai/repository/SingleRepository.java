@@ -52,6 +52,20 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
     }
 
     @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "length", "streams", "release_date"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> artists = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN SONG_ARTISTS SA ON C.creator_id = SA.creator_id WHERE SA.song_id = ?",
+                id
+        );
+        details.append("Artists: ").append(artists.isEmpty() ? "None" : String.join(", ", artists)).append("\n");
+
+        return details.toString();
+    }
+
+    @Override
     public String getCategoryName() {
         return "Singles";
     }

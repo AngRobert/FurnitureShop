@@ -19,7 +19,7 @@ public abstract class Creator implements Searchable {
         this.name = name;
     }
 
-    public int getCreator_id() {
+    public int getId() {
         return creator_id;
     }
 

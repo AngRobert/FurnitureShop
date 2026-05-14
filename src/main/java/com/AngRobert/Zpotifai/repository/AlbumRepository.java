@@ -39,6 +39,31 @@ public class AlbumRepository extends BaseRepository<Album> implements Searchable
         return this.searchByColumnName("name", name);
     }
 
+    @Override
+    public String getSearchDetails(int id) {
+        String baseDetails = super.getSearchDetails(id, List.of("name", "release_date"));
+        StringBuilder details = new StringBuilder(baseDetails);
+
+        List<String> artists = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN ALBUM_ARTISTS AA ON C.creator_id = AA.creator_id " +
+                        "WHERE AA.album_id = ?", id);
+        details.append("Artists: ").append(String.join(", ", artists)).append("\n");
+
+        List<String> tracks = getRelatedNames(
+                "SELECT S.name || ' (Track ' || AT.track_number || ', ' || " +
+                        "CAST(S.length / 60 AS TEXT) || ':' || " +
+                        "CASE WHEN S.length % 60 < 10 THEN '0' || CAST(S.length % 60 AS TEXT) " +
+                        "ELSE CAST(S.length % 60 AS TEXT) END || ')' " +
+                        "FROM SONGS S JOIN ALBUM_TRACKS AT ON S.song_id = AT.song_id " +
+                        "WHERE AT.album_id = ? ORDER BY AT.track_number",
+                id
+        );
+
+        details.append("Tracks:\n\t").append(String.join("\n\t", tracks)).append("\n");
+
+        return details.toString();
+    }
+
     public int getIdByNameAndArtist(String albumName, int artistId) {
         String sql = "SELECT A.album_id FROM ALBUMS A " +
                 "JOIN ALBUM_ARTISTS AA ON A.album_id = AA.album_id " +

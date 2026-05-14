@@ -9,7 +9,7 @@ public class Podcast extends Streamable {
 
     public Podcast() {}
 
-    public int getPodcast_id() {
+    public int getId() {
         return podcast_id;
     }
 

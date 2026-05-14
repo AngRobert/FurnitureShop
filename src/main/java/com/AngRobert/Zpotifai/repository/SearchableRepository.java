@@ -6,6 +6,9 @@ public interface SearchableRepository<T> {
 
     public List<T> searchByName(String name);
 
+    public String getSearchDetails(int id);
+
     // for printing purposes
     public String getCategoryName();
+
 }
