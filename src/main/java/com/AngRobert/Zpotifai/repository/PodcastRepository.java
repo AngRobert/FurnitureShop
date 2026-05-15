@@ -1,10 +1,13 @@
 package com.AngRobert.Zpotifai.repository;
 
 import com.AngRobert.Zpotifai.model.Podcast;
+import com.AngRobert.Zpotifai.util.DBConnection;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.ArrayList;
 
 public class PodcastRepository extends BaseRepository<Podcast> implements SearchableRepository<Podcast>{
 
@@ -52,5 +55,18 @@ public class PodcastRepository extends BaseRepository<Podcast> implements Search
     @Override
     public String getCategoryName() {
         return "Podcasts";
+    }
+
+    public List<Integer> getPodcastIdsByHostId(int hostId) {
+        String sql = "SELECT podcast_id FROM PODCAST_HOSTS WHERE creator_id = ?";
+        List<Integer> ids = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, hostId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) ids.add(rs.getInt(1));
+        } catch (SQLException e) {
+            System.out.println("Error fetching podcast IDs for host: " + e.getMessage());
+        }
+        return ids;
     }
 }

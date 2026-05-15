@@ -77,66 +77,73 @@ public class DatabaseService {
         return podcastId;
     }
 
-    public int addAlbum(String name, String artistName) {
-        int artistId = artistRepository.getIdByName(artistName);
-        if (artistId == -1) {
-            System.out.println("Artist not found!");
-            return -1;
-        }
+    private List<Integer> getArtistIds(List<String> artistNames) {
+        return artistNames.stream()
+                .map(name -> {
+                    int id = artistRepository.getIdByName(name.trim());
+                    if (id == -1) System.out.println("Artist '" + name.trim() + "' not found!");
+                    return id;
+                })
+                .filter(id -> id != -1)
+                .toList();
+    }
 
-        if (albumRepository.getIdByNameAndArtist(name, artistId) != -1) {
-            System.out.println("Album with this name already exists for this artist!");
+    public int addAlbum(String name, List<String> artistNames, String releaseDate) {
+        List<Integer> artistIds = getArtistIds(artistNames);
+        if (artistIds.isEmpty()) return -1;
+
+        // Check if album already exists for the FIRST artist as a simple duplicate check
+        if (albumRepository.getIdByNameAndArtist(name, artistIds.get(0)) != -1) {
+            System.out.println("Album with this name already exists for '" + artistNames.get(0).trim() + "'!");
             return -1;
         }
 
         int albumId = albumRepository.add(
-                List.of("name"),
-                List.of(name)
+                List.of("name", "release_date"),
+                List.of(name, java.sql.Date.valueOf(releaseDate))
         );
 
         if (albumId != -1) {
-            albumRepository.add("ALBUM_ARTISTS", 
-                    List.of("album_id", "creator_id"), 
-                    List.of(albumId, artistId));
+            for (int artistId : artistIds) {
+                albumRepository.add("ALBUM_ARTISTS", 
+                        List.of("album_id", "creator_id"), 
+                        List.of(albumId, artistId));
+            }
         }
         return albumId;
     }
 
-    public int addSingle(String name, int length, String artistName) {
-        int artistId = artistRepository.getIdByName(artistName);
-        if (artistId == -1) {
-            System.out.println("Artist not found!");
-            return -1;
-        }
+    public int addSingle(String name, int length, List<String> artistNames, String releaseDate) {
+        List<Integer> artistIds = getArtistIds(artistNames);
+        if (artistIds.isEmpty()) return -1;
 
-        if (singleRepository.getIdByNameAndArtist(name, artistId) != -1) {
-            System.out.println("Single with this name already exists for this artist!");
+        if (singleRepository.getIdByNameAndArtist(name, artistIds.get(0)) != -1) {
+            System.out.println("Single with this name already exists for '" + artistNames.get(0).trim() + "'!");
             return -1;
         }
 
         int songId = singleRepository.add(
-                List.of("name", "length"),
-                List.of(name, length)
+                List.of("name", "length", "release_date"),
+                List.of(name, length, java.sql.Date.valueOf(releaseDate))
         );
 
         if (songId != -1) {
-            singleRepository.add("SONG_ARTISTS", 
-                    List.of("song_id", "creator_id"), 
-                    List.of(songId, artistId));
+            for (int artistId : artistIds) {
+                singleRepository.add("SONG_ARTISTS", 
+                        List.of("song_id", "creator_id"), 
+                        List.of(songId, artistId));
+            }
         }
         return songId;
     }
 
-    public int addAlbumTrack(String name, int length, String albumName, int trackNumber, String artistName) {
-        int artistId = artistRepository.getIdByName(artistName);
-        if (artistId == -1) {
-            System.out.println("Artist not found!");
-            return -1;
-        }
+    public int addAlbumTrack(String name, int length, String albumName, int trackNumber, List<String> artistNames) {
+        List<Integer> artistIds = getArtistIds(artistNames);
+        if (artistIds.isEmpty()) return -1;
 
-        int albumId = albumRepository.getIdByNameAndArtist(albumName, artistId);
+        int albumId = albumRepository.getIdByNameAndArtist(albumName, artistIds.get(0));
         if (albumId == -1) {
-            System.out.println("Album not found for this artist!");
+            System.out.println("Album not found for artist '" + artistNames.get(0).trim() + "'!");
             return -1;
         }
 
@@ -151,9 +158,11 @@ public class DatabaseService {
         );
 
         if (songId != -1) {
-            albumTrackRepository.add("SONG_ARTISTS", 
-                    List.of("song_id", "creator_id"), 
-                    List.of(songId, artistId));
+            for (int artistId : artistIds) {
+                albumTrackRepository.add("SONG_ARTISTS", 
+                        List.of("song_id", "creator_id"), 
+                        List.of(songId, artistId));
+            }
         }
         return songId;
     }
@@ -232,6 +241,99 @@ public class DatabaseService {
         if (id == -1) return -1;
 
         return tagRepository.update(id, List.of("description"), List.of(newDescription));
+    }
+
+    public int deleteArtist(String name) {
+        int id = artistRepository.getIdByName(name);
+        if (id == -1) return -1;
+
+        // Delete albums of this artist
+        List<Integer> albumIds = albumRepository.getAlbumIdsByArtistId(id);
+        for (int aid : albumIds) {
+            deleteAlbumById(aid);
+        }
+
+        // Delete singles of this artist
+        List<Integer> singleIds = singleRepository.getSongIdsByArtistId(id);
+        for (int sid : singleIds) {
+            singleRepository.deleteById(sid);
+        }
+
+        artistRepository.deleteById(id);
+        return id;
+    }
+
+    public int deleteHost(String name) {
+        int id = hostRepository.getIdByName(name);
+        if (id == -1) return -1;
+
+        // Delete podcasts of this host
+        List<Integer> podcastIds = podcastRepository.getPodcastIdsByHostId(id);
+        for (int pid : podcastIds) {
+            podcastRepository.deleteById(pid);
+        }
+
+        hostRepository.deleteById(id);
+        return id;
+    }
+
+    public int deletePodcast(String name) {
+        int id = podcastRepository.getIdByName(name);
+        if (id == -1) return -1;
+        podcastRepository.deleteById(id);
+        return id;
+    }
+
+    private void deleteAlbumById(int albumId) {
+        // Find songs in this album
+        List<Integer> songIds = albumTrackRepository.getSongIdsByAlbumId(albumId);
+        for (int sid : songIds) {
+            albumTrackRepository.deleteById(sid);
+        }
+        albumRepository.deleteById(albumId);
+    }
+
+    public int deleteAlbum(String name, String artistName) {
+        int artistId = artistRepository.getIdByName(artistName);
+        if (artistId == -1) return -1;
+
+        int albumId = albumRepository.getIdByNameAndArtist(name, artistId);
+        if (albumId == -1) return -1;
+
+        deleteAlbumById(albumId);
+        return albumId;
+    }
+
+    public int deleteSingle(String name, String artistName) {
+        int artistId = artistRepository.getIdByName(artistName);
+        if (artistId == -1) return -1;
+
+        int songId = singleRepository.getIdByNameAndArtist(name, artistId);
+        if (songId == -1) return -1;
+
+        singleRepository.deleteById(songId);
+        return songId;
+    }
+
+    public int deleteAlbumTrack(String name, String albumName, String artistName) {
+        int artistId = artistRepository.getIdByName(artistName);
+        if (artistId == -1) return -1;
+
+        int albumId = albumRepository.getIdByNameAndArtist(albumName, artistId);
+        if (albumId == -1) return -1;
+
+        int songId = albumTrackRepository.getIdByNameAndAlbum(name, albumId);
+        if (songId == -1) return -1;
+
+        albumTrackRepository.deleteById(songId);
+        return songId;
+    }
+
+    public int deleteTag(String description) {
+        int id = tagRepository.getIdByName(description);
+        if (id == -1) return -1;
+        tagRepository.deleteById(id);
+        return id;
     }
 
     public Boolean findArtist(String name) {

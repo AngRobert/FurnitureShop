@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements SearchableRepository<AlbumTrack>
 {
@@ -84,5 +85,18 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
             System.out.println("Error finding album track by name and album: " + e.getMessage());
         }
         return -1;
+    }
+
+    public List<Integer> getSongIdsByAlbumId(int albumId) {
+        String sql = "SELECT song_id FROM ALBUM_TRACKS WHERE album_id = ?";
+        List<Integer> ids = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, albumId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) ids.add(rs.getInt(1));
+        } catch (SQLException e) {
+            System.out.println("Error fetching song IDs for album: " + e.getMessage());
+        }
+        return ids;
     }
 }

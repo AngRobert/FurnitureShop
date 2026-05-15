@@ -4,6 +4,7 @@ import com.AngRobert.Zpotifai.service.DatabaseService;
 import com.AngRobert.Zpotifai.service.SearchService;
 
 import java.util.Scanner;
+import java.util.List;
 
 public class MenuController {
 
@@ -106,11 +107,119 @@ public class MenuController {
                     handleUpdateAction(entityType);
                     break;
                 case 3:
-                    System.out.println("Delete logic coming soon...");
+                    handleDeleteAction(entityType);
                     break;
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input! Please enter a number from those that appear on screen.");
+        }
+    }
+
+    private void handleDeleteAction(String entityType) {
+        try {
+            int result = -1;
+            switch (entityType) {
+                case "Creator":
+                    System.out.println("1. Artist\n2. Host");
+                    int type = Integer.parseInt(scanner.nextLine());
+                    if (type == 1) {
+                        System.out.print("Artist Name to delete: ");
+                        String name = scanner.nextLine();
+                        if (!databaseService.findArtist(name)) {
+                            System.out.println("Error: Artist '" + name + "' not found!");
+                            return;
+                        }
+                        result = databaseService.deleteArtist(name);
+                    } else {
+                        System.out.print("Host Name to delete: ");
+                        String name = scanner.nextLine();
+                        if (!databaseService.findHost(name)) {
+                            System.out.println("Error: Host '" + name + "' not found!");
+                            return;
+                        }
+                        result = databaseService.deleteHost(name);
+                    }
+                    break;
+
+                case "Podcast":
+                    System.out.print("Podcast Name to delete: ");
+                    String pName = scanner.nextLine();
+                    if (!databaseService.findPodcast(pName)) {
+                        System.out.println("Error: Podcast '" + pName + "' not found!");
+                        return;
+                    }
+                    result = databaseService.deletePodcast(pName);
+                    break;
+
+                case "Album":
+                    System.out.print("Artist Name: ");
+                    String albumArtist = scanner.nextLine();
+                    if (!databaseService.findArtist(albumArtist)) {
+                        System.out.println("Error: Artist '" + albumArtist + "' not found!");
+                        return;
+                    }
+
+                    System.out.print("Album Name to delete: ");
+                    String aName = scanner.nextLine();
+                    if (!databaseService.findAlbum(aName, albumArtist)) {
+                        System.out.println("Error: Album '" + aName + "' not found for artist '" + albumArtist + "'!");
+                        return;
+                    }
+                    result = databaseService.deleteAlbum(aName, albumArtist);
+                    break;
+
+                case "Song":
+                    System.out.println("1. Single\n2. Album Track");
+                    int sType = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Artist Name: ");
+                    String songArtist = scanner.nextLine();
+                    if (!databaseService.findArtist(songArtist)) {
+                        System.out.println("Error: Artist '" + songArtist + "' not found!");
+                        return;
+                    }
+
+                    if (sType == 1) {
+                        System.out.print("Single Name to delete: ");
+                        String sName = scanner.nextLine();
+                        if (!databaseService.findSingle(sName, songArtist)) {
+                            System.out.println("Error: Single '" + sName + "' not found for artist '" + songArtist + "'!");
+                            return;
+                        }
+                        result = databaseService.deleteSingle(sName, songArtist);
+                    } else {
+                        System.out.print("Album Name: ");
+                        String albumName = scanner.nextLine();
+                        if (!databaseService.findAlbum(albumName, songArtist)) {
+                            System.out.println("Error: Album '" + albumName + "' not found for artist '" + songArtist + "'!");
+                            return;
+                        }
+
+                        System.out.print("Song Name to delete: ");
+                        String sName = scanner.nextLine();
+                        if (!databaseService.findAlbumTrack(sName, albumName, songArtist)) {
+                            System.out.println("Error: Song '" + sName + "' not found on album '" + albumName + "'!");
+                            return;
+                        }
+                        result = databaseService.deleteAlbumTrack(sName, albumName, songArtist);
+                    }
+                    break;
+
+                case "Tag":
+                    System.out.print("Tag Description to delete: ");
+                    String tDesc = scanner.nextLine();
+                    if (!databaseService.findTag(tDesc)) {
+                        System.out.println("Error: Tag '" + tDesc + "' not found!");
+                        return;
+                    }
+                    result = databaseService.deleteTag(tDesc);
+                    break;
+            }
+
+            if (result != -1) {
+                System.out.println(entityType + " deleted successfully!");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input!");
         }
     }
 
@@ -302,9 +411,11 @@ public class MenuController {
                 case "Album":
                     System.out.print("Album Name: ");
                     String aName = scanner.nextLine();
-                    System.out.print("Artist Name: ");
-                    String albumArtist = scanner.nextLine();
-                    result = databaseService.addAlbum(aName, albumArtist);
+                    System.out.print("Artist Names (comma separated): ");
+                    List<String> albumArtists = List.of(scanner.nextLine().split(","));
+                    System.out.print("Release Date (YYYY-MM-DD): ");
+                    String aReleaseDate = scanner.nextLine();
+                    result = databaseService.addAlbum(aName, albumArtists, aReleaseDate);
                     break;
                 case "Song":
                     System.out.println("1. Single\n2. Album Track");
@@ -313,16 +424,18 @@ public class MenuController {
                     String sName = scanner.nextLine();
                     System.out.print("Song Length: ");
                     int sLen = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Artist Name: ");
-                    String songArtist = scanner.nextLine();
+                    System.out.print("Artist Names (comma separated): ");
+                    List<String> songArtists = List.of(scanner.nextLine().split(","));
                     if (sType == 1) {
-                        result = databaseService.addSingle(sName, sLen, songArtist);
+                        System.out.print("Release Date (YYYY-MM-DD): ");
+                        String sReleaseDate = scanner.nextLine();
+                        result = databaseService.addSingle(sName, sLen, songArtists, sReleaseDate);
                     } else {
                         System.out.print("Album Name: ");
                         String albumName = scanner.nextLine();
                         System.out.print("Track Number: ");
                         int trackNum = Integer.parseInt(scanner.nextLine());
-                        result = databaseService.addAlbumTrack(sName, sLen, albumName, trackNum, songArtist);
+                        result = databaseService.addAlbumTrack(sName, sLen, albumName, trackNum, songArtists);
                     }
                     break;
             }

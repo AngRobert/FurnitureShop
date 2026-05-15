@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 public class SingleRepository extends BaseRepository<Single> implements SearchableRepository<Single>{
 
@@ -83,5 +84,21 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
             System.out.println("Error finding single by name and artist: " + e.getMessage());
         }
         return -1;
+    }
+
+    public List<Integer> getSongIdsByArtistId(int artistId) {
+        String sql = "SELECT S.song_id FROM SONGS S " +
+                "JOIN SONG_ARTISTS SA ON S.song_id = SA.song_id " +
+                "JOIN SINGLES SI ON S.song_id = SI.song_id " +
+                "WHERE SA.creator_id = ?";
+        List<Integer> ids = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, artistId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) ids.add(rs.getInt(1));
+        } catch (SQLException e) {
+            System.out.println("Error fetching single IDs for artist: " + e.getMessage());
+        }
+        return ids;
     }
 }

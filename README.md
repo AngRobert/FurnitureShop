@@ -19,3 +19,6 @@ This is my project for the Advanced Object-Oriented Programming course.
 14. Delete an artist and all their songs from the database 
 15. Delete an album and all its songs from the database
 16. Show database logs
+
+todo: make it so you cant add another track on an album
+that has the same track number as another one

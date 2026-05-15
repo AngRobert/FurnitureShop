@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 public class AlbumRepository extends BaseRepository<Album> implements SearchableRepository<Album> {
 
@@ -77,5 +78,18 @@ public class AlbumRepository extends BaseRepository<Album> implements Searchable
             System.out.println("Error finding album by name and artist: " + e.getMessage());
         }
         return -1;
+    }
+
+    public List<Integer> getAlbumIdsByArtistId(int artistId) {
+        String sql = "SELECT album_id FROM ALBUM_ARTISTS WHERE creator_id = ?";
+        List<Integer> ids = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, artistId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) ids.add(rs.getInt(1));
+        } catch (SQLException e) {
+            System.out.println("Error fetching album IDs for artist: " + e.getMessage());
+        }
+        return ids;
     }
 }

@@ -234,11 +234,11 @@ public abstract class BaseRepository<T> {
             if (rs.next()) {
                 StringBuilder details = new StringBuilder("\nDetails:\n");
                 for (String col : columnNames) {
-                    // Prettify column names: replace _ with space and capitalize
+
                     String displayName = col.substring(0, 1).toUpperCase() + col.substring(1).replace("_", " ");
                     Object value = rs.getObject(col);
 
-                    // Special formatting for length (seconds to MM:SS)
+                    // format for song length (seconds to MM:SS)
                     if (col.equalsIgnoreCase("length") && value instanceof Number) {
                         int totalSeconds = ((Number) value).intValue();
                         int mins = totalSeconds / 60;
@@ -256,7 +256,6 @@ public abstract class BaseRepository<T> {
         return "Item not found.";
     }
 
-    // Keep the generic one as a fallback or remove it if we want strictness
     public String getSearchDetails(int id) {
         return "No details implemented for this category.";
     }
