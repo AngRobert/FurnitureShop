@@ -3,19 +3,24 @@ package com.AngRobert.Zpotifai.service;
 import com.AngRobert.Zpotifai.model.Searchable;
 import com.AngRobert.Zpotifai.repository.SearchableRepository;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchService {
-    private final List<SearchableRepository<?>> searchableRepositories;
+    private final Map<String, SearchableRepository<?>> repositoryMap;
 
     public SearchService(List<SearchableRepository<?>> repos) {
-        this.searchableRepositories = repos;
+        this.repositoryMap = new LinkedHashMap<>();
+        for (SearchableRepository<?> repo : repos) {
+            this.repositoryMap.put(repo.getCategoryName(), repo);
+        }
     }
 
     // takes the list of repos that appear in the search and calls searchByName for each of them
     public void handleSearch(String name, int category, int entry) {
         int category_no = 1;
-        for (SearchableRepository<?> repo : this.searchableRepositories) {
+        for (SearchableRepository<?> repo : this.repositoryMap.values()) {
             List<?> results = repo.searchByName(name);
             if (!results.isEmpty()) {
                 if (category == 0) {

@@ -1,12 +1,12 @@
 package com.AngRobert.Zpotifai.model;
 
-import java.util.List;
+import java.util.Set;
 
 public abstract class Creator implements Searchable {
     protected int creator_id;
     protected String name;
     protected String description;
-    protected List<Tag> tags;
+    protected Set<Tag> tags;
 
     public Creator() {}
 
@@ -35,11 +35,11 @@ public abstract class Creator implements Searchable {
         this.description = description;
     }
 
-    public List<Tag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
 }
