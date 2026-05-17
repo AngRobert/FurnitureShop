@@ -64,6 +64,12 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
         );
         details.append("Album: ").append(album.isEmpty() ? "None" : album.get(0)).append("\n");
 
+        List<String> collaborators = getRelatedNames(
+                "SELECT C.name FROM COLLABORATORS C JOIN SONG_COLLABORATIONS SC ON C.collaborator_id = SC.collaborator_id WHERE SC.song_id = ?",
+                id
+        );
+        details.append("Collaborators: ").append(collaborators.isEmpty() ? "None" : String.join(", ", collaborators)).append("\n");
+
         return details.toString();
     }
 

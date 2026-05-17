@@ -77,12 +77,12 @@ public abstract class BaseRepository<T> {
         return rez;
     }
 
-    public List<T> findAll() {
-        List<T> list = new ArrayList<>();
+    public List<String> findAll() {
+        List<String> list = new ArrayList<>();
         String sql = "SELECT * FROM " + getTableName();
         try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()) list.add(mapRow(rs));
+            while (rs.next()) list.add(rs.getString("description"));
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -254,10 +254,6 @@ public abstract class BaseRepository<T> {
             System.out.println("Error fetching details: " + e.getMessage());
         }
         return "Item not found.";
-    }
-
-    public String getSearchDetails(int id) {
-        return "No details implemented for this category.";
     }
 
     protected List<String> getRelatedNames(String sql, int id) {

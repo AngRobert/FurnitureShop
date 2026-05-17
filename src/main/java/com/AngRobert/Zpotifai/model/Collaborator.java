@@ -2,13 +2,18 @@ package com.AngRobert.Zpotifai.model;
 
 import java.util.List;
 
-public class Collaborator {
+public class Collaborator implements Searchable {
     private int collaborator_id;
     private String name;
     private String description;
     private List<Song> songs;
 
     public Collaborator() {}
+
+    @Override
+    public int getId() {
+        return collaborator_id;
+    }
 
     public int getCollaborator_id() {
         return collaborator_id;

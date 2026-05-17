@@ -64,7 +64,15 @@ public class ArtistRepository extends BaseRepository<Artist> implements Searchab
                         "JOIN SINGLES SI ON S.song_id = SI.song_id WHERE SA.creator_id = ?",
                 id
         );
+
         details.append("Singles: ").append(singles.isEmpty() ? "None" : String.join(", ", singles)).append("\n");
+
+        List<String> tags = getRelatedNames(
+                "SELECT T.description FROM TAGS T JOIN CREATOR_TAGS CT ON CT.TAG_ID = T.TAG_ID " +
+                "WHERE CT.CREATOR_ID = ?",
+                id
+        );
+        details.append("Tags: ").append(tags.isEmpty() ? "None" : String.join(", ", tags)).append("\n");
 
         return details.toString();
     }

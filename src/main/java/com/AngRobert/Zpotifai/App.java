@@ -23,12 +23,13 @@ public class App {
         var podcastRepo = new PodcastRepository();
         var singleRepo = new SingleRepository();
         var tagRepo = new TagRepository();
+        var collaboratorRepo = new CollaboratorRepository();
 
         this.repos = List.of(albumRepo, albumTrackRepo, artistRepo, hostRepo,
-                podcastRepo, singleRepo);
+                podcastRepo, singleRepo, collaboratorRepo);
 
         this.databaseService = new DatabaseService(albumRepo, albumTrackRepo, artistRepo, hostRepo,
-                podcastRepo, singleRepo, tagRepo);
+                podcastRepo, singleRepo, tagRepo, collaboratorRepo);
     }
 
     public void run() {

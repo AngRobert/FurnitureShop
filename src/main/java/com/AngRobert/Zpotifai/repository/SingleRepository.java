@@ -63,6 +63,12 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
         );
         details.append("Artists: ").append(artists.isEmpty() ? "None" : String.join(", ", artists)).append("\n");
 
+        List<String> collaborators = getRelatedNames(
+                "SELECT C.name FROM COLLABORATORS C JOIN SONG_COLLABORATIONS SC ON C.collaborator_id = SC.collaborator_id WHERE SC.song_id = ?",
+                id
+        );
+        details.append("Collaborators: ").append(collaborators.isEmpty() ? "None" : String.join(", ", collaborators)).append("\n");
+
         return details.toString();
     }
 

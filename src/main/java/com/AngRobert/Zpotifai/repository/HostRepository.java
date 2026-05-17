@@ -59,6 +59,13 @@ public class HostRepository extends BaseRepository<Host> implements SearchableRe
         );
         details.append("Podcasts: ").append(podcasts.isEmpty() ? "None" : String.join(", ", podcasts)).append("\n");
 
+        List<String> tags = getRelatedNames(
+                "SELECT T.description FROM TAGS T JOIN CREATOR_TAGS CT ON CT.TAG_ID = T.TAG_ID " +
+                        "WHERE CT.CREATOR_ID = ?",
+                id
+        );
+        details.append("Tags: ").append(tags.isEmpty() ? "None" : String.join(", ", tags)).append("\n");
+
         return details.toString();
     }
 

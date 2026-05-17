@@ -3,6 +3,7 @@ package com.AngRobert.Zpotifai.controller;
 import com.AngRobert.Zpotifai.service.DatabaseService;
 import com.AngRobert.Zpotifai.service.SearchService;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.List;
 
@@ -30,7 +31,9 @@ public class MenuController {
                     5. Add, Update, or Delete a song.
                     6. Add, Update, or Delete a podcast.
                     7. Add, Update, or Delete a tag.
-                    8. Show database logs.
+                    8. Add a tag to a creator.
+                    9. Add, Update, or Delete a collaborator.
+                    10. Show database logs.
                     """);
             if (!this.handleStartMenuInput()) break;
         }
@@ -63,6 +66,9 @@ public class MenuController {
                         }
                     }
                     break;
+                case 2:
+                    listAllTags();
+                    break;
                 case 3:
                     handleDbOperation("Creator");
                     break;
@@ -78,6 +84,12 @@ public class MenuController {
                 case 7:
                     handleDbOperation("Tag");
                     break;
+                case 8:
+                    handleTagAssociations();
+                    break;
+                case 9:
+                    handleDbOperation("Collaborator");
+                    break;
                 default:
                     System.out.println("Invalid input");
             }
@@ -85,6 +97,49 @@ public class MenuController {
             System.out.println("Invalid input! Please enter a number from those that appear on screen.");
         }
         return true;
+    }
+
+    private void listAllTags() {
+        List<String> tags = new ArrayList<>();
+        tags = databaseService.getAllTags();
+        System.out.println("Tags: ");
+        for (int i = 0; i < tags.size(); i ++) {
+            if (i != tags.size() - 1) {
+                System.out.printf("%s, ", tags.get(i));
+            }
+            else {
+                System.out.println(tags.get(i) + "\n");
+            }
+        }
+    }
+
+    private void handleTagAssociations() {
+        System.out.println("1. Artist\n2. Host");
+        int type = Integer.parseInt(scanner.nextLine());
+        
+        System.out.print("Creator Name: ");
+        String cName = scanner.nextLine();
+
+        if (type == 1 && !databaseService.findArtist(cName)) {
+            System.out.println("Error: Artist '" + cName + "' not found!");
+            return;
+        } else if (type == 2 && !databaseService.findHost(cName)) {
+            System.out.println("Error: Host '" + cName + "' not found!");
+            return;
+        }
+
+        System.out.print("Tag name: ");
+        String tName = scanner.nextLine();
+
+        if (!databaseService.findTag(tName)) {
+            System.out.println("Error: Tag '" + tName + "' not found!");
+            return;
+        }
+
+        int result = databaseService.addTagToCreator(cName, tName);
+        if (result != -1) {
+            System.out.println("Tag associated successfully with creator!");
+        }
     }
 
     private void handleDbOperation(String entityType) {
@@ -212,6 +267,15 @@ public class MenuController {
                         return;
                     }
                     result = databaseService.deleteTag(tDesc);
+                    break;
+                case "Collaborator":
+                    System.out.print("Collaborator Name to delete: ");
+                    String collName = scanner.nextLine();
+                    if (!databaseService.findCollaborator(collName)) {
+                        System.out.println("Error: Collaborator '" + collName + "' not found!");
+                        return;
+                    }
+                    result = databaseService.deleteCollaborator(collName);
                     break;
             }
 
@@ -360,6 +424,19 @@ public class MenuController {
                     String newTDesc = scanner.nextLine();
                     result = databaseService.updateTag(tDesc, newTDesc);
                     break;
+                case "Collaborator":
+                    System.out.print("Collaborator Name: ");
+                    String colName = scanner.nextLine();
+                    if (!databaseService.findCollaborator(colName)) {
+                        System.out.println("Error: Collaborator '" + colName + "' not found!");
+                        return;
+                    }
+                    System.out.print("New Collaborator Name: ");
+                    String newColName = scanner.nextLine();
+                    System.out.print("New Collaborator Description: ");
+                    String newColDesc = scanner.nextLine();
+                    result = databaseService.updateCollaborator(colName, newColName, newColDesc);
+                    break;
             }
 
             if (result != -1) {
@@ -371,6 +448,32 @@ public class MenuController {
         }
     }
 
+    private String readValidDate(String prompt) {
+        String input;
+        while (true) {
+            System.out.print(prompt);
+            input = scanner.nextLine().trim();
+            try {
+                java.time.LocalDate.parse(input);
+                return input;
+            } catch (java.time.format.DateTimeParseException e) {
+                System.out.println("Error: Invalid date format. Please use YYYY-MM-DD.");
+            }
+        }
+    }
+
+    private String readNonEmptyString(String prompt) {
+        String input;
+        do {
+            System.out.print(prompt);
+            input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("Error: Input cannot be empty. Please try again.");
+            }
+        } while (input.isEmpty());
+        return input;
+    }
+
     private void handleAddAction(String entityType) {
         try {
             int result = -1;
@@ -378,65 +481,61 @@ public class MenuController {
                 case "Creator":
                     System.out.println("1. Artist\n2. Host");
                     int type = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Creator Name: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Creator Description: ");
-                    String desc = scanner.nextLine();
+                    String name = readNonEmptyString("Creator Name: ");
+                    String desc = readNonEmptyString("Creator Description: ");
                     if (type == 1) {
-                        System.out.print("Recommended Song: ");
-                        String song = scanner.nextLine();
+                        String song = readNonEmptyString("Recommended Song: ");
                         result = databaseService.addArtist(name, desc, song);
                     } else {
-                        System.out.print("Recommended Podcast: ");
-                        String podcast = scanner.nextLine();
+                        String podcast = readNonEmptyString("Recommended Podcast: ");
                         result = databaseService.addHost(name, desc, podcast);
                     }
                     break;
                 case "Podcast":
-                    System.out.print("Podcast Name: ");
-                    String pName = scanner.nextLine();
-                    System.out.print("Podcast Description: ");
-                    String pDesc = scanner.nextLine();
-                    System.out.print("Podcast Length: ");
+                    String pName = readNonEmptyString("Podcast Name: ");
+                    String pDesc = readNonEmptyString("Podcast Description: ");
+                    System.out.print("Podcast Length (seconds): ");
                     int pLen = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Host Name: ");
-                    String hostName = scanner.nextLine();
+                    String hostName = readNonEmptyString("Host Name: ");
                     result = databaseService.addPodcast(pName, pDesc, pLen, hostName);
                     break;
                 case "Tag":
-                    System.out.print("Tag Description: ");
-                    String tDesc = scanner.nextLine();
+                    String tDesc = readNonEmptyString("Tag Description: ");
                     result = databaseService.addTag(tDesc);
                     break;
                 case "Album":
-                    System.out.print("Album Name: ");
-                    String aName = scanner.nextLine();
-                    System.out.print("Artist Names (comma separated): ");
-                    List<String> albumArtists = List.of(scanner.nextLine().split(","));
-                    System.out.print("Release Date (YYYY-MM-DD): ");
-                    String aReleaseDate = scanner.nextLine();
+                    String aName = readNonEmptyString("Album Name: ");
+                    String artistInput = readNonEmptyString("Artist Names (comma separated): ");
+                    List<String> albumArtists = List.of(artistInput.split(","));
+                    String aReleaseDate = readValidDate("Release Date (YYYY-MM-DD): ");
                     result = databaseService.addAlbum(aName, albumArtists, aReleaseDate);
                     break;
                 case "Song":
                     System.out.println("1. Single\n2. Album Track");
                     int sType = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Song Name: ");
-                    String sName = scanner.nextLine();
-                    System.out.print("Song Length: ");
+                    String sName = readNonEmptyString("Song Name: ");
+                    System.out.print("Song Length (seconds): ");
                     int sLen = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Artist Names (comma separated): ");
-                    List<String> songArtists = List.of(scanner.nextLine().split(","));
+                    String songArtistInput = readNonEmptyString("Artist Names (comma separated): ");
+                    List<String> songArtists = List.of(songArtistInput.split(","));
                     if (sType == 1) {
-                        System.out.print("Release Date (YYYY-MM-DD): ");
-                        String sReleaseDate = scanner.nextLine();
-                        result = databaseService.addSingle(sName, sLen, songArtists, sReleaseDate);
+                        String sReleaseDate = readValidDate("Release Date (YYYY-MM-DD): ");
+                        String collabsInput = readNonEmptyString("Collaborator Names (comma separated, or 'none'): ");
+                        List<String> collabs = collabsInput.equalsIgnoreCase("none") ? List.of() : List.of(collabsInput.split(","));
+                        result = databaseService.addSingle(sName, sLen, songArtists, sReleaseDate, collabs);
                     } else {
-                        System.out.print("Album Name: ");
-                        String albumName = scanner.nextLine();
+                        String albumName = readNonEmptyString("Album Name: ");
                         System.out.print("Track Number: ");
                         int trackNum = Integer.parseInt(scanner.nextLine());
-                        result = databaseService.addAlbumTrack(sName, sLen, albumName, trackNum, songArtists);
+                        String collabsInput = readNonEmptyString("Collaborator Names (comma separated, or 'none'): ");
+                        List<String> collabs = collabsInput.equalsIgnoreCase("none") ? List.of() : List.of(collabsInput.split(","));
+                        result = databaseService.addAlbumTrack(sName, sLen, albumName, trackNum, songArtists, collabs);
                     }
+                    break;
+                case "Collaborator":
+                    String collName = readNonEmptyString("Collaborator Name: ");
+                    String collDesc = readNonEmptyString("Collaborator Description: ");
+                    result = databaseService.addCollaborator(collName, collDesc);
                     break;
             }
             if (result != -1) {
@@ -445,7 +544,7 @@ public class MenuController {
                 System.out.println("Failed to add " + entityType);
             }
         } catch (NumberFormatException e) {
-            System.out.println("Invalid input!");
+            System.out.println("Invalid input! Please enter numbers where requested.");
         }
     }
 }
