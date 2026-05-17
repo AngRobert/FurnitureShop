@@ -3,6 +3,7 @@ package com.AngRobert.Zpotifai.service;
 import com.AngRobert.Zpotifai.repository.*;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class DatabaseService {
     private final AlbumRepository albumRepository;
@@ -79,30 +80,35 @@ public class DatabaseService {
     }
 
     private List<Integer> getArtistIds(List<String> artistNames) {
-        return artistNames.stream()
-                .map(name -> {
-                    int id = artistRepository.getIdByName(name.trim());
-                    if (id == -1) System.out.println("Artist '" + name.trim() + "' not found!");
-                    return id;
-                })
-                .filter(id -> id != -1)
-                .toList();
+        List<Integer> ids = new ArrayList<>();
+        for (String name : artistNames) {
+            int id = artistRepository.getIdByName(name.trim());
+            if (id == -1) {
+                System.out.println("Error: Artist '" + name.trim() + "' not found!");
+                return null;
+            }
+            ids.add(id);
+        }
+        return ids;
     }
 
     private List<Integer> getCollaboratorIds(List<String> collaboratorNames) {
-        return collaboratorNames.stream()
-                .map(name -> {
-                    int id = collaboratorRepository.getIdByName(name.trim());
-                    if (id == -1) System.out.println("Collaborator '" + name.trim() + "' not found!");
-                    return id;
-                })
-                .filter(id -> id != -1)
-                .toList();
+        if (collaboratorNames.isEmpty()) return new ArrayList<>();
+        List<Integer> ids = new ArrayList<>();
+        for (String name : collaboratorNames) {
+            int id = collaboratorRepository.getIdByName(name.trim());
+            if (id == -1) {
+                System.out.println("Error: Collaborator '" + name.trim() + "' not found!");
+                return null;
+            }
+            ids.add(id);
+        }
+        return ids;
     }
 
     public int addAlbum(String name, List<String> artistNames, String releaseDate) {
         List<Integer> artistIds = getArtistIds(artistNames);
-        if (artistIds.isEmpty()) return -1;
+        if (artistIds == null || artistIds.isEmpty()) return -1;
 
         if (albumRepository.getIdByNameAndArtist(name, artistIds.get(0)) != -1) {
             System.out.println("Album with this name already exists for '" + artistNames.get(0).trim() + "'!");
@@ -126,6 +132,9 @@ public class DatabaseService {
 
     public int addSingle(String name, int length, List<String> artistNames, String releaseDate, List<String> collaboratorNames) {
         List<Integer> artistIds = getArtistIds(artistNames);
+        List<Integer> collaboratorIds = getCollaboratorIds(collaboratorNames);
+
+        if (artistIds == null || collaboratorIds == null) return -1;
         if (artistIds.isEmpty()) return -1;
 
         if (singleRepository.getIdByNameAndArtist(name, artistIds.get(0)) != -1) {
@@ -145,7 +154,6 @@ public class DatabaseService {
                         List.of(songId, artistId));
             }
 
-            List<Integer> collaboratorIds = getCollaboratorIds(collaboratorNames);
             for (int colabId : collaboratorIds) {
                 collaboratorRepository.add("SONG_COLLABORATIONS",
                         List.of("collaborator_id", "song_id"),
@@ -157,6 +165,9 @@ public class DatabaseService {
 
     public int addAlbumTrack(String name, int length, String albumName, int trackNumber, List<String> artistNames, List<String> collaboratorNames) {
         List<Integer> artistIds = getArtistIds(artistNames);
+        List<Integer> collaboratorIds = getCollaboratorIds(collaboratorNames);
+
+        if (artistIds == null || collaboratorIds == null) return -1;
         if (artistIds.isEmpty()) return -1;
 
         int albumId = albumRepository.getIdByNameAndArtist(albumName, artistIds.get(0));
@@ -182,7 +193,6 @@ public class DatabaseService {
                         List.of(songId, artistId));
             }
 
-            List<Integer> collaboratorIds = getCollaboratorIds(collaboratorNames);
             for (int collabId : collaboratorIds) {
                 collaboratorRepository.add("SONG_COLLABORATIONS",
                         List.of("collaborator_id", "song_id"),
