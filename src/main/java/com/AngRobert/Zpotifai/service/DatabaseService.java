@@ -1,5 +1,6 @@
 package com.AngRobert.Zpotifai.service;
 
+import com.AngRobert.Zpotifai.model.AlbumTrack;
 import com.AngRobert.Zpotifai.repository.*;
 
 import java.util.List;
@@ -386,4 +387,16 @@ public class DatabaseService {
     public Boolean findCollaborator(String name) { return collaboratorRepository.checkDuplicates(name); }
 
     public List<String> getAllTags() { return tagRepository.findAll(); }
+
+    public void playSong(int id) {
+        singleRepository.incrementStreams(id);
+    }
+
+    public void playPodcast(int id) {
+        podcastRepository.incrementStreams(id);
+    }
+
+    public List<AlbumTrack> getTracksForAlbum(int albumId) {
+        return albumTrackRepository.getTracksByAlbumId(albumId);
+    }
 }

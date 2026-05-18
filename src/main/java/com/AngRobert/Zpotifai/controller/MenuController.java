@@ -1,6 +1,6 @@
 package com.AngRobert.Zpotifai.controller;
 
-import com.AngRobert.Zpotifai.model.EntityType;
+import com.AngRobert.Zpotifai.model.*;
 import com.AngRobert.Zpotifai.service.DatabaseService;
 import com.AngRobert.Zpotifai.service.SearchService;
 
@@ -60,7 +60,10 @@ public class MenuController {
                             try {
                                 int category = Integer.parseInt(parts[0]);
                                 int entry = Integer.parseInt(parts[1]);
-                                searchService.handleSearch(input, category, entry);
+                                Searchable item = searchService.handleSearch(input, category, entry);
+                                if (item != null) {
+                                    handlePlayInteraction(item);
+                                }
                             } catch (NumberFormatException e) {
                                 System.out.println("Invalid format. Please enter two numbers.");
                             }
@@ -101,8 +104,7 @@ public class MenuController {
     }
 
     private void listAllTags() {
-        List<String> tags = new ArrayList<>();
-        tags = databaseService.getAllTags();
+        List<String> tags = databaseService.getAllTags();
         System.out.println("Tags: ");
         for (int i = 0; i < tags.size(); i ++) {
             if (i != tags.size() - 1) {
@@ -110,6 +112,46 @@ public class MenuController {
             }
             else {
                 System.out.println(tags.get(i) + "\n");
+            }
+        }
+    }
+
+    private void handlePlayInteraction(Searchable item) {
+        if (item instanceof Song) {
+            System.out.print("Play this song? (y/n): ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                databaseService.playSong(item.getId());
+                System.out.println("Playing " + item.getName() + "...");
+            }
+        } else if (item instanceof Podcast) {
+            System.out.print("Play this podcast? (y/n): ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                databaseService.playPodcast(item.getId());
+                System.out.println("Playing " + item.getName() + "...");
+            }
+        } else if (item instanceof Album) {
+            System.out.print("Enter track number to play (or Enter to return): ");
+            String trackInput = scanner.nextLine().trim();
+            if (!trackInput.isEmpty()) {
+                try {
+                    int trackNum = Integer.parseInt(trackInput);
+                    List<AlbumTrack> tracks = databaseService.getTracksForAlbum(item.getId());
+                    AlbumTrack selectedTrack = null;
+                    for (AlbumTrack t : tracks) {
+                        if (t.getTrack_number() == trackNum) {
+                            selectedTrack = t;
+                            break;
+                        }
+                    }
+                    if (selectedTrack != null) {
+                        databaseService.playSong(selectedTrack.getId());
+                        System.out.println("Playing " + selectedTrack.getName() + "...");
+                    } else {
+                        System.out.println("Track not found.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid track number.");
+                }
             }
         }
     }

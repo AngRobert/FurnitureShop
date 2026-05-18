@@ -105,4 +105,19 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
         }
         return ids;
     }
+
+    public List<AlbumTrack> getTracksByAlbumId(int albumId) {
+        String sql = "SELECT * FROM " + getTableName() + " WHERE album_id = ? ORDER BY track_number";
+        List<AlbumTrack> tracks = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, albumId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tracks.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching tracks: " + e.getMessage());
+        }
+        return tracks;
+    }
 }

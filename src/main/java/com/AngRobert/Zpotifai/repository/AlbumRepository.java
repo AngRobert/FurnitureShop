@@ -92,4 +92,28 @@ public class AlbumRepository extends BaseRepository<Album> implements Searchable
         }
         return ids;
     }
+
+    public List<com.AngRobert.Zpotifai.model.AlbumTrack> getTracksForAlbum(int albumId) {
+        String sql = "SELECT S.*, AT.track_number FROM SONGS S " +
+                "JOIN ALBUM_TRACKS AT ON S.song_id = AT.song_id " +
+                "WHERE AT.album_id = ? ORDER BY AT.track_number";
+        List<com.AngRobert.Zpotifai.model.AlbumTrack> tracks = new ArrayList<>();
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, albumId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                com.AngRobert.Zpotifai.model.AlbumTrack t = new com.AngRobert.Zpotifai.model.AlbumTrack();
+                t.setSong_id(rs.getInt("song_id"));
+                t.setName(rs.getString("name"));
+                t.setLength(rs.getInt("length"));
+                t.setStreams(rs.getInt("streams"));
+                t.setRelease_date(rs.getDate("release_date").toLocalDate());
+                t.setTrack_number(rs.getInt("track_number"));
+                tracks.add(t);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching tracks for album: " + e.getMessage());
+        }
+        return tracks;
+    }
 }

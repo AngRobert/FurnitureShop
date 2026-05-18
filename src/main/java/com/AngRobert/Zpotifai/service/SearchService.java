@@ -16,12 +16,11 @@ public class SearchService {
     }
 
     // takes the list of repos that appear in the search and calls searchByName for each of them
-    public void handleSearch(String name, int category, int entry) {
+    public Searchable handleSearch(String name, int category, int entry) {
         int category_no = 1;
         for (SearchableRepository<?> repo : this.repositoryMap.values()) {
             List<?> rawResults = repo.searchByName(name);
             if (!rawResults.isEmpty()) {
-                // Use a TreeSet to satisfy the "sorted collection" requirement
                 TreeSet<Searchable> sortedResults = new TreeSet<>();
                 for (Object obj : rawResults) {
                     sortedResults.add((Searchable) obj);
@@ -42,7 +41,7 @@ public class SearchService {
                     if (entry > 0 && entry <= results.size()) {
                         Searchable item = results.get(entry - 1);
                         System.out.println(repo.getSearchDetails(item.getId()));
-                        return;
+                        return item;
                     }
                 }
                 category_no++;
@@ -51,6 +50,7 @@ public class SearchService {
         if (category != 0) {
             System.out.println("Item not found for the given category and number.");
         }
+        return null;
     }
 
     public void handleSearch(String name) {

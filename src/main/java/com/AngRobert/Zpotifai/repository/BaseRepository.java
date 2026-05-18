@@ -225,6 +225,16 @@ public abstract class BaseRepository<T> {
         }
     }
 
+    public void incrementStreams(int id) {
+        String sql = "UPDATE " + getBaseTableName() + " SET streams = streams + 1 WHERE " + getIdColumnName() + " = ?";
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error incrementing streams: " + e.getMessage());
+        }
+    }
+
     public String getSearchDetails(int id, List<String> columnNames) {
         String columns = String.join(", ", columnNames);
         String sql = "SELECT " + columns + " FROM " + getTableName() + " WHERE " + getBaseTableName() + "." + getIdColumnName() + " = ?";
