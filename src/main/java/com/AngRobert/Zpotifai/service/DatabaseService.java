@@ -1,7 +1,8 @@
 package com.AngRobert.Zpotifai.service;
 
-import com.AngRobert.Zpotifai.model.AlbumTrack;
+import com.AngRobert.Zpotifai.model.*;
 import com.AngRobert.Zpotifai.repository.*;
+import com.AngRobert.Zpotifai.util.AuditLogger;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -39,10 +40,12 @@ public class DatabaseService {
             System.out.println("Artist with this name already exists!");
             return -1;
         }
-        return artistRepository.add(
+        int id = artistRepository.add(
                 List.of("name", "description", "recommended_song"),
                 List.of(name, description, recommendedSong)
         );
+        if (id != -1) AuditLogger.log("Added Artist: " + name);
+        return id;
     }
 
     public int addHost(String name, String description, String recommendedPodcast) {
@@ -50,20 +53,23 @@ public class DatabaseService {
             System.out.println("Host with this name already exists!");
             return -1;
         }
-        return hostRepository.add(
+        int id = hostRepository.add(
                 List.of("name", "description", "recommended_podcast"),
                 List.of(name, description, recommendedPodcast)
         );
+        if (id != -1) AuditLogger.log("Added Host: " + name);
+        return id;
     }
 
     public int addPodcast(String name, String description, int length, String hostName) {
-        if (podcastRepository.checkDuplicates(name)) {
-            System.out.println("Podcast with this name already exists!");
-            return -1;
-        }
         int hostId = hostRepository.getIdByName(hostName);
         if (hostId == -1) {
             System.out.println("Host not found!");
+            return -1;
+        }
+
+        if (podcastRepository.checkDuplicates(name, hostId)) {
+            System.out.println("Podcast with this name already exists for this host!");
             return -1;
         }
 
@@ -76,6 +82,7 @@ public class DatabaseService {
             podcastRepository.add("PODCAST_HOSTS", 
                     List.of("creator_id", "podcast_id"), 
                     List.of(hostId, podcastId));
+            AuditLogger.log("Added Podcast: " + name);
         }
         return podcastId;
     }
@@ -127,6 +134,7 @@ public class DatabaseService {
                         List.of("album_id", "creator_id"), 
                         List.of(albumId, artistId));
             }
+            AuditLogger.log("Added Album: " + name);
         }
         return albumId;
     }
@@ -160,6 +168,7 @@ public class DatabaseService {
                         List.of("collaborator_id", "song_id"),
                         List.of(colabId, songId));
             }
+            AuditLogger.log("Added Single: " + name);
         }
         return songId;
     }
@@ -199,6 +208,7 @@ public class DatabaseService {
                         List.of("collaborator_id", "song_id"),
                         List.of(collabId, songId));
             }
+            AuditLogger.log("Added Album Track: " + name);
         }
         return songId;
     }
@@ -208,7 +218,9 @@ public class DatabaseService {
             System.out.println("Tag already exists!");
             return -1;
         }
-        return tagRepository.add(List.of("description"), List.of(description));
+        int id = tagRepository.add(List.of("description"), List.of(description));
+        if (id != -1) AuditLogger.log("Added Tag: " + description);
+        return id;
     }
 
     public int addTagToCreator(String creatorName, String tagDescription) {
@@ -216,7 +228,9 @@ public class DatabaseService {
         if (creatorId == -1) creatorId = hostRepository.getIdByName(creatorName);
         int tagId = tagRepository.getIdByName(tagDescription);
         if (creatorId == -1 || tagId == -1) return -1;
-        return tagRepository.add("CREATOR_TAGS", List.of("tag_id", "creator_id"), List.of(tagId, creatorId));
+        int id = tagRepository.add("CREATOR_TAGS", List.of("tag_id", "creator_id"), List.of(tagId, creatorId));
+        if (id != -1) AuditLogger.log("Associated Tag '" + tagDescription + "' with Creator '" + creatorName + "'");
+        return id;
     }
 
     public int addCollaborator(String name, String description) {
@@ -224,25 +238,35 @@ public class DatabaseService {
             System.out.println("Collaborator with this name already exists!");
             return -1;
         }
-        return collaboratorRepository.add(List.of("name", "description"), List.of(name, description));
+        int id = collaboratorRepository.add(List.of("name", "description"), List.of(name, description));
+        if (id != -1) AuditLogger.log("Added Collaborator: " + name);
+        return id;
     }
 
     public int updateArtist(String oldName, String newName, String description, String newRecommendedSong) {
         int id = artistRepository.getIdByName(oldName);
         if (id == -1) return -1;
-        return artistRepository.update(id, List.of("name", "description", "recommended_song"), List.of(newName, description, newRecommendedSong));
+        int result = artistRepository.update(id, List.of("name", "description", "recommended_song"), List.of(newName, description, newRecommendedSong));
+        if (result != -1) AuditLogger.log("Updated Artist: " + oldName);
+        return result;
     }
 
     public int updateHost(String oldName, String newName, String description, String newRecommendedPodcast) {
         int id = hostRepository.getIdByName(oldName);
         if (id == -1) return -1;
-        return hostRepository.update(id, List.of("name", "description", "recommended_podcast"), List.of(newName, description, newRecommendedPodcast));
+        int result = hostRepository.update(id, List.of("name", "description", "recommended_podcast"), List.of(newName, description, newRecommendedPodcast));
+        if (result != -1) AuditLogger.log("Updated Host: " + oldName);
+        return result;
     }
 
-    public int updatePodcast(String oldName, String newName, String description, int length) {
-        int id = podcastRepository.getIdByName(oldName);
+    public int updatePodcast(String oldName, String hostName, String newName, String description, int length) {
+        int hostId = hostRepository.getIdByName(hostName);
+        if (hostId == -1) return -1;
+        int id = podcastRepository.getIdByNameAndHost(oldName, hostId);
         if (id == -1) return -1;
-        return podcastRepository.update(id, List.of("name", "description", "length"), List.of(newName, description, length));
+        int result = podcastRepository.update(id, List.of("name", "description", "length"), List.of(newName, description, length));
+        if (result != -1) AuditLogger.log("Updated Podcast: " + oldName);
+        return result;
     }
 
     public int updateAlbum(String oldName, String artistName, String newName) {
@@ -250,7 +274,9 @@ public class DatabaseService {
         if (artistId == -1) return -1;
         int albumId = albumRepository.getIdByNameAndArtist(oldName, artistId);
         if (albumId == -1) return -1;
-        return albumRepository.update(albumId, List.of("name"), List.of(newName));
+        int result = albumRepository.update(albumId, List.of("name"), List.of(newName));
+        if (result != -1) AuditLogger.log("Updated Album: " + oldName);
+        return result;
     }
 
     public int updateSingle(String oldName, String artistName, String newName, int length) {
@@ -258,7 +284,9 @@ public class DatabaseService {
         if (artistId == -1) return -1;
         int songId = singleRepository.getIdByNameAndArtist(oldName, artistId);
         if (songId == -1) return -1;
-        return singleRepository.update(songId, List.of("name", "length"), List.of(newName, length));
+        int result = singleRepository.update(songId, List.of("name", "length"), List.of(newName, length));
+        if (result != -1) AuditLogger.log("Updated Single: " + oldName);
+        return result;
     }
 
     public int updateAlbumTrack(String oldName, String albumName, String artistName, String newName, int length, int trackNumber) {
@@ -268,19 +296,25 @@ public class DatabaseService {
         if (albumId == -1) return -1;
         int songId = albumTrackRepository.getIdByNameAndAlbum(oldName, albumId);
         if (songId == -1) return -1;
-        return albumTrackRepository.update(songId, List.of("name", "length", "track_number"), List.of(newName, length, trackNumber));
+        int result = albumTrackRepository.update(songId, List.of("name", "length", "track_number"), List.of(newName, length, trackNumber));
+        if (result != -1) AuditLogger.log("Updated Album Track: " + oldName);
+        return result;
     }
 
     public int updateTag(String oldDescription, String newDescription) {
         int id = tagRepository.getIdByName(oldDescription);
         if (id == -1) return -1;
-        return tagRepository.update(id, List.of("description"), List.of(newDescription));
+        int result = tagRepository.update(id, List.of("description"), List.of(newDescription));
+        if (result != -1) AuditLogger.log("Updated Tag: " + oldDescription);
+        return result;
     }
 
     public int updateCollaborator(String oldName, String newName, String description) {
         int id = collaboratorRepository.getIdByName(oldName);
         if (id == -1) return -1;
-        return collaboratorRepository.update(id, List.of("name", "description"), List.of(newName, description));
+        int result = collaboratorRepository.update(id, List.of("name", "description"), List.of(newName, description));
+        if (result != -1) AuditLogger.log("Updated Collaborator: " + oldName);
+        return result;
     }
 
     public int deleteArtist(String name) {
@@ -291,6 +325,7 @@ public class DatabaseService {
         List<Integer> singleIds = singleRepository.getSongIdsByArtistId(id);
         for (int sid : singleIds) singleRepository.deleteById(sid);
         artistRepository.deleteById(id);
+        AuditLogger.log("Deleted Artist: " + name);
         return id;
     }
 
@@ -300,13 +335,17 @@ public class DatabaseService {
         List<Integer> podcastIds = podcastRepository.getPodcastIdsByHostId(id);
         for (int pid : podcastIds) podcastRepository.deleteById(pid);
         hostRepository.deleteById(id);
+        AuditLogger.log("Deleted Host: " + name);
         return id;
     }
 
-    public int deletePodcast(String name) {
-        int id = podcastRepository.getIdByName(name);
+    public int deletePodcast(String name, String hostName) {
+        int hostId = hostRepository.getIdByName(hostName);
+        if (hostId == -1) return -1;
+        int id = podcastRepository.getIdByNameAndHost(name, hostId);
         if (id == -1) return -1;
         podcastRepository.deleteById(id);
+        AuditLogger.log("Deleted Podcast: " + name);
         return id;
     }
 
@@ -322,6 +361,7 @@ public class DatabaseService {
         int albumId = albumRepository.getIdByNameAndArtist(name, artistId);
         if (albumId == -1) return -1;
         deleteAlbumById(albumId);
+        AuditLogger.log("Deleted Album: " + name);
         return albumId;
     }
 
@@ -331,6 +371,7 @@ public class DatabaseService {
         int songId = singleRepository.getIdByNameAndArtist(name, artistId);
         if (songId == -1) return -1;
         singleRepository.deleteById(songId);
+        AuditLogger.log("Deleted Single: " + name);
         return songId;
     }
 
@@ -342,6 +383,7 @@ public class DatabaseService {
         int songId = albumTrackRepository.getIdByNameAndAlbum(name, albumId);
         if (songId == -1) return -1;
         albumTrackRepository.deleteById(songId);
+        AuditLogger.log("Deleted Album Track: " + name);
         return songId;
     }
 
@@ -349,6 +391,7 @@ public class DatabaseService {
         int id = tagRepository.getIdByName(description);
         if (id == -1) return -1;
         tagRepository.deleteById(id);
+        AuditLogger.log("Deleted Tag: " + description);
         return id;
     }
 
@@ -356,6 +399,7 @@ public class DatabaseService {
         int id = collaboratorRepository.getIdByName(name);
         if (id == -1) return -1;
         collaboratorRepository.deleteById(id);
+        AuditLogger.log("Deleted Collaborator: " + name);
         return id;
     }
 
@@ -363,7 +407,10 @@ public class DatabaseService {
 
     public Boolean findHost(String name) { return hostRepository.getIdByName(name) != -1; }
 
-    public Boolean findPodcast(String name) { return podcastRepository.getIdByName(name) != -1; }
+    public Boolean findPodcast(String podcastName, String hostName) {
+        int hostId = hostRepository.getIdByName(hostName);
+        return hostId != -1 && podcastRepository.getIdByNameAndHost(podcastName, hostId) != -1;
+    }
 
     public Boolean findAlbum(String albumName, String artistName) {
         int artistId = artistRepository.getIdByName(artistName);
@@ -390,13 +437,21 @@ public class DatabaseService {
 
     public void playSong(int id) {
         singleRepository.incrementStreams(id);
+        Song song = singleRepository.findById(id);
+        if (song == null) {
+            song = albumTrackRepository.findById(id);
+        }
+        if (song != null) AuditLogger.log("Played Song: " + song.getName());
     }
 
     public void playPodcast(int id) {
         podcastRepository.incrementStreams(id);
+        Podcast podcast = podcastRepository.findById(id);
+        if (podcast != null) AuditLogger.log("Played Podcast: " + podcast.getName());
     }
 
     public List<AlbumTrack> getTracksForAlbum(int albumId) {
         return albumTrackRepository.getTracksByAlbumId(albumId);
     }
 }
+

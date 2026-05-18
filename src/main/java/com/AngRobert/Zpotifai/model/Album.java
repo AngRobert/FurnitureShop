@@ -9,8 +9,18 @@ public class Album implements Searchable {
     private LocalDate release_date;
     private List<Artist> artists;
     private List<AlbumTrack> tracks;
+    private String creatorDisplayName;
 
     public Album() {}
+
+    @Override
+    public String getCreatorDisplayName() {
+        return creatorDisplayName != null ? creatorDisplayName : "";
+    }
+
+    public void setCreatorDisplayName(String creatorDisplayName) {
+        this.creatorDisplayName = creatorDisplayName;
+    }
 
     @Override
     public String getName() {

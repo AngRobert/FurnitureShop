@@ -36,7 +36,7 @@ public abstract class BaseRepository<T> {
     }
 
     public T findById(int id) {
-        String sql = "SELECT * FROM " + getTableName() + " WHERE " + getIdColumnName() + " = ?";
+        String sql = "SELECT * FROM " + getTableName() + " WHERE " + getBaseTableName() + "." + getIdColumnName() + " = ?";
         try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();

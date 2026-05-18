@@ -17,6 +17,15 @@ public class AlbumRepository extends BaseRepository<Album> implements Searchable
         a.setAlbum_id(rs.getInt("album_id"));
         a.setName(rs.getString("name"));
         a.setRelease_date(rs.getDate("release_date").toLocalDate());
+
+        // Fetch primary artist for display
+        List<String> artists = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN ALBUM_ARTISTS AA ON C.creator_id = AA.creator_id " +
+                        "WHERE AA.album_id = ?", a.getId());
+        if (!artists.isEmpty()) {
+            a.setCreatorDisplayName(String.join(", ", artists));
+        }
+
         return a;
     }
 

@@ -7,8 +7,18 @@ public abstract class Streamable implements Searchable {
     protected LocalDate release_date;
     protected int length;
     protected int streams;
+    protected String creatorDisplayName;
 
     public Streamable() {}
+
+    @Override
+    public String getCreatorDisplayName() {
+        return creatorDisplayName != null ? creatorDisplayName : "";
+    }
+
+    public void setCreatorDisplayName(String creatorDisplayName) {
+        this.creatorDisplayName = creatorDisplayName;
+    }
 
     @Override
     public String getName() {

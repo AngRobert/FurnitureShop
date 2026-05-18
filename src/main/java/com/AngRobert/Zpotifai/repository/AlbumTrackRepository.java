@@ -30,6 +30,16 @@ public class AlbumTrackRepository extends BaseRepository<AlbumTrack> implements 
         a.setLength(rs.getInt("length"));
         a.setRelease_date(rs.getDate("release_date").toLocalDate());
         a.setStreams(rs.getInt("streams"));
+
+        // Fetch primary artist for display
+        List<String> artists = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN SONG_ARTISTS SA ON C.creator_id = SA.creator_id WHERE SA.song_id = ?",
+                a.getId()
+        );
+        if (!artists.isEmpty()) {
+            a.setCreatorDisplayName(String.join(", ", artists));
+        }
+
         return a;
     }
 

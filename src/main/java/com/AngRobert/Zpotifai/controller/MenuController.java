@@ -34,7 +34,6 @@ public class MenuController {
                     7. Add, Update, or Delete a tag.
                     8. Add a tag to a creator.
                     9. Add, Update, or Delete a collaborator.
-                    10. Show database logs.
                     """);
             if (!this.handleStartMenuInput()) break;
         }
@@ -240,13 +239,19 @@ public class MenuController {
                     break;
 
                 case PODCAST:
-                    System.out.print("Podcast Name to delete: ");
-                    String pName = scanner.nextLine();
-                    if (!databaseService.findPodcast(pName)) {
-                        System.out.println("Error: Podcast '" + pName + "' not found!");
+                    System.out.print("Host Name: ");
+                    String pHostName = scanner.nextLine();
+                    if (!databaseService.findHost(pHostName)) {
+                        System.out.println("Error: Host '" + pHostName + "' not found!");
                         return;
                     }
-                    result = databaseService.deletePodcast(pName);
+                    System.out.print("Podcast Name to delete: ");
+                    String pName = scanner.nextLine();
+                    if (!databaseService.findPodcast(pName, pHostName)) {
+                        System.out.println("Error: Podcast '" + pName + "' not found for host '" + pHostName + "'!");
+                        return;
+                    }
+                    result = databaseService.deletePodcast(pName, pHostName);
                     break;
 
                 case ALBUM:
@@ -368,10 +373,16 @@ public class MenuController {
                     break;
 
                 case PODCAST:
+                    System.out.print("Host Name: ");
+                    String hostName = scanner.nextLine();
+                    if (!databaseService.findHost(hostName)) {
+                        System.out.println("Error: Host '" + hostName + "' not found!");
+                        return;
+                    }
                     System.out.print("Podcast Name: ");
                     String oldPName = scanner.nextLine();
-                    if (!databaseService.findPodcast(oldPName)) {
-                        System.out.println("Error: Podcast '" + oldPName + "' not found!");
+                    if (!databaseService.findPodcast(oldPName, hostName)) {
+                        System.out.println("Error: Podcast '" + oldPName + "' not found for host '" + hostName + "'!");
                         return;
                     }
                     System.out.print("New Podcast Name: ");
@@ -380,7 +391,7 @@ public class MenuController {
                     String pDesc = scanner.nextLine();
                     System.out.print("New Podcast Length: ");
                     int pLen = Integer.parseInt(scanner.nextLine());
-                    result = databaseService.updatePodcast(oldPName, newPName, pDesc, pLen);
+                    result = databaseService.updatePodcast(oldPName, hostName, newPName, pDesc, pLen);
                     break;
 
                 case ALBUM:
@@ -481,7 +492,7 @@ public class MenuController {
             }
 
         } catch (NumberFormatException e) {
-            System.out.println("Invalid input! Please enter numbers where requested.");
+            System.out.println("Invalid input!");
         }
     }
 

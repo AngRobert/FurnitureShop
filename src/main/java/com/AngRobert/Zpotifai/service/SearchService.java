@@ -2,6 +2,7 @@ package com.AngRobert.Zpotifai.service;
 
 import com.AngRobert.Zpotifai.model.Searchable;
 import com.AngRobert.Zpotifai.repository.SearchableRepository;
+import com.AngRobert.Zpotifai.util.AuditLogger;
 
 import java.util.*;
 
@@ -17,7 +18,11 @@ public class SearchService {
 
     // takes the list of repos that appear in the search and calls searchByName for each of them
     public Searchable handleSearch(String name, int category, int entry) {
+        if (category == 0) {
+            AuditLogger.log("Search performed for: " + name);
+        }
         int category_no = 1;
+        name = name.trim();
         for (SearchableRepository<?> repo : this.repositoryMap.values()) {
             List<?> rawResults = repo.searchByName(name);
             if (!rawResults.isEmpty()) {
@@ -33,7 +38,13 @@ public class SearchService {
                     // Standard search listing
                     System.out.println(category_no + ": " + repo.getCategoryName() + ":");
                     for (int i = 0; i < results.size(); i++) {
-                        System.out.printf("\t%d: %s\n", i + 1, results.get(i).getName());
+                        Searchable item = results.get(i);
+                        String creator = item.getCreatorDisplayName();
+                        String displayName = item.getName();
+                        if (!creator.isEmpty()) {
+                            displayName += " [by " + creator + "]";
+                        }
+                        System.out.printf("\t%d: %s\n", i + 1, displayName);
                     }
                     System.out.println();
                 } else if (category == category_no) {

@@ -29,6 +29,16 @@ public class SingleRepository extends BaseRepository<Single> implements Searchab
         s.setLength(rs.getInt("length"));
         s.setRelease_date(rs.getDate("release_date").toLocalDate());
         s.setStreams(rs.getInt("streams"));
+
+        // Fetch primary artist for display
+        List<String> artists = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN SONG_ARTISTS SA ON C.creator_id = SA.creator_id WHERE SA.song_id = ?",
+                s.getId()
+        );
+        if (!artists.isEmpty()) {
+            s.setCreatorDisplayName(String.join(", ", artists));
+        }
+
         return s;
     }
 

@@ -20,6 +20,16 @@ public class PodcastRepository extends BaseRepository<Podcast> implements Search
         p.setLength(rs.getInt("length"));
         p.setRelease_date(rs.getDate("release_date").toLocalDate());
         p.setStreams(rs.getInt("streams"));
+
+        // Fetch host for display
+        List<String> hosts = getRelatedNames(
+                "SELECT C.name FROM CREATORS C JOIN PODCAST_HOSTS PH ON C.creator_id = PH.creator_id WHERE PH.podcast_id = ?",
+                p.getId()
+        );
+        if (!hosts.isEmpty()) {
+            p.setCreatorDisplayName(String.join(", ", hosts));
+        }
+
         return p;
     }
 
@@ -55,6 +65,25 @@ public class PodcastRepository extends BaseRepository<Podcast> implements Search
     @Override
     public String getCategoryName() {
         return "Podcasts";
+    }
+
+    public int getIdByNameAndHost(String podcastName, int hostId) {
+        String sql = "SELECT P.podcast_id FROM PODCASTS P " +
+                "JOIN PODCAST_HOSTS PH ON P.podcast_id = PH.podcast_id " +
+                "WHERE LOWER(P.name) = LOWER(?) AND PH.creator_id = ?";
+        try (PreparedStatement stmt = DBConnection.get().prepareStatement(sql)) {
+            stmt.setString(1, podcastName);
+            stmt.setInt(2, hostId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println("Error finding podcast by name and host: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    public boolean checkDuplicates(String name, int hostId) {
+        return getIdByNameAndHost(name, hostId) != -1;
     }
 
     public List<Integer> getPodcastIdsByHostId(int hostId) {
