@@ -1,5 +1,6 @@
 package com.AngRobert.Zpotifai.controller;
 
+import com.AngRobert.Zpotifai.model.EntityType;
 import com.AngRobert.Zpotifai.service.DatabaseService;
 import com.AngRobert.Zpotifai.service.SearchService;
 
@@ -70,25 +71,25 @@ public class MenuController {
                     listAllTags();
                     break;
                 case 3:
-                    handleDbOperation("Creator");
+                    handleDbOperation(EntityType.CREATOR);
                     break;
                 case 4:
-                    handleDbOperation("Album");
+                    handleDbOperation(EntityType.ALBUM);
                     break;
                 case 5:
-                    handleDbOperation("Song");
+                    handleDbOperation(EntityType.SONG);
                     break;
                 case 6:
-                    handleDbOperation("Podcast");
+                    handleDbOperation(EntityType.PODCAST);
                     break;
                 case 7:
-                    handleDbOperation("Tag");
+                    handleDbOperation(EntityType.TAG);
                     break;
                 case 8:
                     handleTagAssociations();
                     break;
                 case 9:
-                    handleDbOperation("Collaborator");
+                    handleDbOperation(EntityType.COLLABORATOR);
                     break;
                 default:
                     System.out.println("Invalid input");
@@ -142,7 +143,7 @@ public class MenuController {
         }
     }
 
-    private void handleDbOperation(String entityType) {
+    private void handleDbOperation(EntityType entityType) {
         try {
             System.out.println("""
                 Which action would you like to perform?
@@ -170,11 +171,11 @@ public class MenuController {
         }
     }
 
-    private void handleDeleteAction(String entityType) {
+    private void handleDeleteAction(EntityType entityType) {
         try {
             int result = -1;
             switch (entityType) {
-                case "Creator":
+                case CREATOR:
                     System.out.println("1. Artist\n2. Host");
                     int type = Integer.parseInt(scanner.nextLine());
                     if (type == 1) {
@@ -196,7 +197,7 @@ public class MenuController {
                     }
                     break;
 
-                case "Podcast":
+                case PODCAST:
                     System.out.print("Podcast Name to delete: ");
                     String pName = scanner.nextLine();
                     if (!databaseService.findPodcast(pName)) {
@@ -206,7 +207,7 @@ public class MenuController {
                     result = databaseService.deletePodcast(pName);
                     break;
 
-                case "Album":
+                case ALBUM:
                     System.out.print("Artist Name: ");
                     String albumArtist = scanner.nextLine();
                     if (!databaseService.findArtist(albumArtist)) {
@@ -223,7 +224,7 @@ public class MenuController {
                     result = databaseService.deleteAlbum(aName, albumArtist);
                     break;
 
-                case "Song":
+                case SONG:
                     System.out.println("1. Single\n2. Album Track");
                     int sType = Integer.parseInt(scanner.nextLine());
                     System.out.print("Artist Name: ");
@@ -259,7 +260,7 @@ public class MenuController {
                     }
                     break;
 
-                case "Tag":
+                case TAG:
                     System.out.print("Tag Description to delete: ");
                     String tDesc = scanner.nextLine();
                     if (!databaseService.findTag(tDesc)) {
@@ -268,7 +269,7 @@ public class MenuController {
                     }
                     result = databaseService.deleteTag(tDesc);
                     break;
-                case "Collaborator":
+                case COLLABORATOR:
                     System.out.print("Collaborator Name to delete: ");
                     String collName = scanner.nextLine();
                     if (!databaseService.findCollaborator(collName)) {
@@ -280,71 +281,67 @@ public class MenuController {
             }
 
             if (result != -1) {
-                System.out.println(entityType + " deleted successfully!");
+                System.out.println(entityType.getDisplayName() + " deleted successfully!");
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input!");
         }
     }
 
-    private void handleUpdateAction(String entityType) {
+    private void handleUpdateAction(EntityType entityType) {
         try {
             int result = -1;
             switch (entityType) {
-                case "Creator":
+                case CREATOR:
                     System.out.println("1. Artist\n2. Host");
                     int type = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Name: ");
+                    String oldName = scanner.nextLine();
+
                     if (type == 1) {
-                        System.out.println("Artist name: ");
-                        String name = scanner.nextLine();
-                        if (!databaseService.findArtist(name)) {
-                            System.out.println("Error: Artist '" + name + "' not found!");
+                        if (!databaseService.findArtist(oldName)) {
+                            System.out.println("Error: Artist '" + oldName + "' not found!");
                             return;
                         }
-
-                        System.out.println("New artist name: ");
+                        System.out.print("New Artist Name: ");
                         String newName = scanner.nextLine();
-                        System.out.println("New artist description: ");
-                        String newDescription = scanner.nextLine();
-                        System.out.println("New recommended song: ");
-                        String newRecommendedSong = scanner.nextLine();
-                        result = databaseService.updateArtist(name, newName, newDescription, newRecommendedSong);
+                        System.out.print("New Artist Description: ");
+                        String desc = scanner.nextLine();
+                        System.out.print("New Recommended Song: ");
+                        String song = scanner.nextLine();
+                        result = databaseService.updateArtist(oldName, newName, desc, song);
                     } else {
-                        System.out.println("Host name: ");
-                        String name = scanner.nextLine();
-                        if (!databaseService.findHost(name)) {
-                            System.out.println("Error: Host '" + name + "' not found!");
+                        if (!databaseService.findHost(oldName)) {
+                            System.out.println("Error: Host '" + oldName + "' not found!");
                             return;
                         }
-
-                        System.out.println("New host name: ");
+                        System.out.print("New Host Name: ");
                         String newName = scanner.nextLine();
-                        System.out.println("New host description: ");
-                        String newDescription = scanner.nextLine();
-                        System.out.println("New recommended podcast: ");
-                        String newRecommendedPodcast = scanner.nextLine();
-                        result = databaseService.updateHost(name, newName, newDescription, newRecommendedPodcast);
+                        System.out.print("New Host Description: ");
+                        String desc = scanner.nextLine();
+                        System.out.print("New Recommended Podcast: ");
+                        String podcast = scanner.nextLine();
+                        result = databaseService.updateHost(oldName, newName, desc, podcast);
                     }
                     break;
 
-                case "Podcast":
+                case PODCAST:
                     System.out.print("Podcast Name: ");
-                    String pName = scanner.nextLine();
-                    if (!databaseService.findPodcast(pName)) {
-                        System.out.println("Error: Podcast '" + pName + "' not found!");
+                    String oldPName = scanner.nextLine();
+                    if (!databaseService.findPodcast(oldPName)) {
+                        System.out.println("Error: Podcast '" + oldPName + "' not found!");
                         return;
                     }
-
                     System.out.print("New Podcast Name: ");
                     String newPName = scanner.nextLine();
                     System.out.print("New Podcast Description: ");
-                    String newPDesc = scanner.nextLine();
+                    String pDesc = scanner.nextLine();
                     System.out.print("New Podcast Length: ");
-                    int newPLen = Integer.parseInt(scanner.nextLine());
-                    result = databaseService.updatePodcast(pName, newPName, newPDesc, newPLen);
+                    int pLen = Integer.parseInt(scanner.nextLine());
+                    result = databaseService.updatePodcast(oldPName, newPName, pDesc, pLen);
                     break;
 
-                case "Album":
+                case ALBUM:
                     System.out.print("Artist Name: ");
                     String albumArtist = scanner.nextLine();
                     if (!databaseService.findArtist(albumArtist)) {
@@ -353,21 +350,19 @@ public class MenuController {
                     }
 
                     System.out.print("Album Name: ");
-                    String aName = scanner.nextLine();
-                    if (!databaseService.findAlbum(aName, albumArtist)) {
-                        System.out.println("Error: Album '" + aName + "' not found for artist '" + albumArtist + "'!");
+                    String oldAName = scanner.nextLine();
+                    if (!databaseService.findAlbum(oldAName, albumArtist)) {
+                        System.out.println("Error: Album '" + oldAName + "' not found for artist '" + albumArtist + "'!");
                         return;
                     }
-
                     System.out.print("New Album Name: ");
                     String newAName = scanner.nextLine();
-                    result = databaseService.updateAlbum(aName, albumArtist, newAName);
+                    result = databaseService.updateAlbum(oldAName, albumArtist, newAName);
                     break;
 
-                case "Song":
+                case SONG:
                     System.out.println("1. Single\n2. Album Track");
                     int sType = Integer.parseInt(scanner.nextLine());
-                    
                     System.out.print("Artist Name: ");
                     String songArtist = scanner.nextLine();
                     if (!databaseService.findArtist(songArtist)) {
@@ -412,7 +407,7 @@ public class MenuController {
                     }
                     break;
 
-                case "Tag":
+                case TAG:
                     System.out.print("Tag Description: ");
                     String tDesc = scanner.nextLine();
                     if (!databaseService.findTag(tDesc)) {
@@ -424,7 +419,7 @@ public class MenuController {
                     String newTDesc = scanner.nextLine();
                     result = databaseService.updateTag(tDesc, newTDesc);
                     break;
-                case "Collaborator":
+                case COLLABORATOR:
                     System.out.print("Collaborator Name: ");
                     String colName = scanner.nextLine();
                     if (!databaseService.findCollaborator(colName)) {
@@ -440,7 +435,7 @@ public class MenuController {
             }
 
             if (result != -1) {
-                System.out.println(entityType + " updated successfully!");
+                System.out.println(entityType.getDisplayName() + " updated successfully!");
             }
 
         } catch (NumberFormatException e) {
@@ -474,11 +469,11 @@ public class MenuController {
         return input;
     }
 
-    private void handleAddAction(String entityType) {
+    private void handleAddAction(EntityType entityType) {
         try {
             int result = -1;
             switch (entityType) {
-                case "Creator":
+                case CREATOR:
                     System.out.println("1. Artist\n2. Host");
                     int type = Integer.parseInt(scanner.nextLine());
                     String name = readNonEmptyString("Creator Name: ");
@@ -491,7 +486,7 @@ public class MenuController {
                         result = databaseService.addHost(name, desc, podcast);
                     }
                     break;
-                case "Podcast":
+                case PODCAST:
                     String pName = readNonEmptyString("Podcast Name: ");
                     String pDesc = readNonEmptyString("Podcast Description: ");
                     System.out.print("Podcast Length (seconds): ");
@@ -499,18 +494,18 @@ public class MenuController {
                     String hostName = readNonEmptyString("Host Name: ");
                     result = databaseService.addPodcast(pName, pDesc, pLen, hostName);
                     break;
-                case "Tag":
+                case TAG:
                     String tDesc = readNonEmptyString("Tag Description: ");
                     result = databaseService.addTag(tDesc);
                     break;
-                case "Album":
+                case ALBUM:
                     String aName = readNonEmptyString("Album Name: ");
                     String artistInput = readNonEmptyString("Artist Names (comma separated): ");
                     List<String> albumArtists = List.of(artistInput.split(","));
                     String aReleaseDate = readValidDate("Release Date (YYYY-MM-DD): ");
                     result = databaseService.addAlbum(aName, albumArtists, aReleaseDate);
                     break;
-                case "Song":
+                case SONG:
                     System.out.println("1. Single\n2. Album Track");
                     int sType = Integer.parseInt(scanner.nextLine());
                     String sName = readNonEmptyString("Song Name: ");
@@ -532,16 +527,16 @@ public class MenuController {
                         result = databaseService.addAlbumTrack(sName, sLen, albumName, trackNum, songArtists, collabs);
                     }
                     break;
-                case "Collaborator":
+                case COLLABORATOR:
                     String collName = readNonEmptyString("Collaborator Name: ");
                     String collDesc = readNonEmptyString("Collaborator Description: ");
                     result = databaseService.addCollaborator(collName, collDesc);
                     break;
             }
             if (result != -1) {
-                System.out.println(entityType + " added successfully!");
+                System.out.println(entityType.getDisplayName() + " added successfully!");
             } else {
-                System.out.println("Failed to add " + entityType);
+                System.out.println("Failed to add " + entityType.getDisplayName());
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input! Please enter numbers where requested.");
