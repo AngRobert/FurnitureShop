@@ -1,14 +1,15 @@
 package com.AngRobert.Zpotifai.model;
 
-// interfata ajuta, deoarece la cautare pot sa am un obiect de tip List<Searchable>
+// interface helps because i can have a List<Searchable> in the search method.
 public interface Searchable extends Comparable<Searchable> {
-    // seminifica faptul ca aceste clase pot fi cautate dupa nume
+    // method that ensures the subclasses are all searched by name
     public String getName();
 
-    // pentru listarea detaliilor
+    // for details
     public int getId();
 
-    // To show who created the item (Artist/Host) in search results
+    // shows who created an item (song, album, podcast) in the search display.
+    // for each of the models, this information is stored in a field that
     default String getCreatorDisplayName() {
         return "";
     }
